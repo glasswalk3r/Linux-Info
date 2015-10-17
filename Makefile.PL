@@ -31,6 +31,7 @@ WriteMakefile(
             repository => 'https://github.com/glasswalk3r/Linux-Info'
         },
     },
+	MIN_PERL_VERSION => 5.8.9, 
     dist => { SUFFIX => '.gz', COMPRESS => 'gzip --best' },
     (
         $] >= 5.010
