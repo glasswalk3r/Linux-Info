@@ -5,6 +5,7 @@ use warnings;
 use Carp qw(croak);
 use POSIX;
 use Readonly;
+use Hash::Util qw(lock_keys);
 
 use base 'Class::Accessor';
 
@@ -94,6 +95,10 @@ interfaces - The interfaces of the system.
 
 arch - The processor architecture (like C<uname -m>).
 
+=item *
+
+multithread - A boolean indicating if the process has hyper threading enabled or not.
+
 =back
 
 C<pcpucount> and C<tcpucount> are really easy to understand. Both values
@@ -132,6 +137,10 @@ by the CPU with "core id" equal to 0 (in other words, the first CPU found).
 Returns an array reference with all flags retrieve from C</proc/cpuinfo> using the same logic described in
 C<get_proc_arch> documentation.
 
+=head2 is_multithread
+
+A getter for the C<multithread> attribute.
+
 =head1 EXPORTS
 
 Nothing.
@@ -151,6 +160,10 @@ L<Linux::Info>
 =item *
 
 L<POSIX>
+
+=item *
+
+L<Hash::Util>
 
 =back
 
@@ -213,6 +226,7 @@ sub new {
     my $self = bless \%self, $class;
 
     $self->_set();
+    lock_keys( %{$self} );
 
     return $self;
 
@@ -246,6 +260,13 @@ sub _set {
         }
 
     }
+
+}
+
+sub is_multithread {
+
+    my $self = shift;
+    return $self->{multithread};
 
 }
 
@@ -302,6 +323,9 @@ sub _set_cpuinfo {
     open my $fh, '<', $filename
       or croak "$class: unable to open $filename ($!)";
 
+    # default value for hyper threading
+    $self->{multithread} = 0;
+
     while ( my $line = <$fh> ) {
 
         chomp($line);
@@ -347,6 +371,13 @@ sub _set_cpuinfo {
                 else {
 
                     $self->{proc_arch} = 32;
+
+                }
+
+                #hyper threading
+                if ( $value =~ /\sht\s/ ) {
+
+                    $self->{multithread} = 1;
 
                 }
 

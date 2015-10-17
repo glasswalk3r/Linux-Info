@@ -14,6 +14,7 @@ WriteMakefile(
     PREREQ_PM    => {
         'UNIVERSAL::require' => 0,
         'UNIVERSAL'          => 0,
+        'Hash::Util'         => 0,
         'Test::More'         => "1.001014",
         'Carp'               => "1.36",
         'POSIX'              => 0,
