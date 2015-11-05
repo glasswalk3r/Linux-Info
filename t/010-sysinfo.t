@@ -1,13 +1,13 @@
 use strict;
 use warnings;
-use Test::More;
+use Test::More tests => 23;
 use Scalar::Util qw(looks_like_number);
 
 BEGIN { use_ok('Linux::Info::SysInfo') }
 
 my $obj = new_ok('Linux::Info::SysInfo');
 my @sysinfo =
-  qw(get_raw_time get_hostname get_domain get_kernel get_release get_version get_mem get_swap get_pcpucount get_tcpucount get_interfaces get_arch get_proc_arch get_cpu_flags get_uptime get_idletime is_multithread);
+  qw(get_raw_time get_hostname get_domain get_kernel get_release get_version get_mem get_swap get_pcpucount get_tcpucount get_interfaces get_arch get_proc_arch get_cpu_flags get_uptime get_idletime is_multithread get_model);
 can_ok( $obj, @sysinfo );
 
 my @pf = qw(
@@ -30,6 +30,8 @@ foreach my $f (@pf) {
 
 like( $obj->get_raw_time,   qr/^[01]$/, 'raw_time is boolean' );
 like( $obj->is_multithread, qr/^[01]$/, 'multithread is boolean' );
+note( 'Processor model is "' . $obj->get_model . '"' );
+like( $obj->get_model, qr/\w+/, 'get_model returns some text' );
 
 foreach my $method (
     qw(get_hostname get_domain get_kernel get_release get_version get_mem get_swap get_arch get_uptime get_idletime)
@@ -40,19 +42,34 @@ foreach my $method (
 
 }
 
-foreach my $method (qw(get_pcpucount get_tcpucount get_proc_arch)) {
+note(
+'tests implemented due report http://www.cpantesters.org/cpan/report/9ae1c364-7671-11e5-aad0-c5a10b3facc5'
+);
+
+SKIP: {
+
+    skip "ARM processors have a different interface on /proc/cpuinfo", 2
+      if ( $obj->get_model =~ /arm/i );
+    ok(
+        looks_like_number( $obj->get_proc_arch ),
+        "get_proc_arch returns a number"
+    ) or diag( explain( check_cpuinfo() ) );
+    is( ref( $obj->get_cpu_flags ),
+        'ARRAY', "get_cpu_flags returns an array reference" )
+      or diag( explain( check_cpuinfo() ) );
+
+}
+
+foreach my $method (qw(get_pcpucount get_tcpucount )) {
 
     ok( looks_like_number( $obj->$method ), "$method returns a number" )
       or diag( explain( check_cpuinfo() ) );
 
 }
 
-foreach my $method (qw(get_cpu_flags get_interfaces)) {
-
-    is( ref( $obj->$method ), 'ARRAY', "$method returns an array reference" )
-      or diag( explain( check_cpuinfo() ) );
-
-}
+is( ref( $obj->get_interfaces ),
+    'ARRAY', "get_interfaces returns an array reference" )
+  or diag( explain( check_cpuinfo() ) );
 
 my $obj2 = Linux::Info::SysInfo->new( { raw_time => 1 } );
 
@@ -63,8 +80,6 @@ foreach my $method (qw(get_uptime get_idletime)) {
     ok( looks_like_number( $obj2->$method ), "$method returns a number" );
 
 }
-
-done_testing();
 
 sub check_cpuinfo {
 
