@@ -10,7 +10,7 @@ use Hash::Util qw(lock_keys);
 use base 'Class::Accessor';
 
 Readonly::Array my @attribs =>
-  qw(raw_time hostname domain kernel release version mem swap pcpucount tcpucount interfaces arch proc_arch cpu_flags uptime idletime);
+  qw(raw_time hostname domain kernel release version mem swap pcpucount tcpucount interfaces arch proc_arch cpu_flags uptime idletime model);
 
 __PACKAGE__->follow_best_practice;
 __PACKAGE__->mk_ro_accessors(@attribs);
@@ -99,6 +99,10 @@ arch - The processor architecture (like C<uname -m>).
 
 multithread - A boolean indicating if the process has hyper threading enabled or not.
 
+=item *
+
+model - the processor name
+
 =back
 
 C<pcpucount> and C<tcpucount> are really easy to understand. Both values
@@ -141,9 +145,18 @@ C<get_proc_arch> documentation.
 
 A getter for the C<multithread> attribute.
 
+=head2 get_model
+
+A getter for the C<model> attribute.
+
 =head1 EXPORTS
 
 Nothing.
+
+=head1 KNOWN ISSUES
+
+Linux running on ARM processors have a different interface on /proc/cpuinfo. That means that the methods C<get_proc_arch> and C<get_cpu_flags>
+will not return their respective information. Tests for this module may fail as well.
 
 =head1 SEE ALSO
 
@@ -326,11 +339,23 @@ sub _set_cpuinfo {
     # default value for hyper threading
     $self->{multithread} = 0;
 
+    # model name      : Intel(R) Core(TM) i5-4300M CPU @ 2.60GHz
+    my $model_regex = qr/^model\sname\s+\:\s(.*)/;
+
+    # Processor	: ARMv7 Processor rev 4 (v7l)
+    my $arm_regex = qr/^Processor\s+\:\s(.*)/;
+
     while ( my $line = <$fh> ) {
 
         chomp($line);
 
       CASE: {
+
+            if ( ( $line =~ $model_regex ) or ( $line =~ $arm_regex ) ) {
+
+                $self->{model} = $1;
+
+            }
 
             if ( $line =~ /^physical\s+id\s*:\s*(\d+)/ ) {
                 $phyid = $1;
