@@ -1,13 +1,10 @@
 package Linux::Info;
 
-our $VERSION = '0.4';
-
 use strict;
 use warnings;
 use Carp qw(croak);
 use POSIX qw(strftime);
 use UNIVERSAL;
-use Devel::AssertOS qw(Linux);
 use Linux::Info::Compilation;
 
 =head1 NAME

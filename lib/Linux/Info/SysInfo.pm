@@ -3,17 +3,16 @@ package Linux::Info::SysInfo;
 use strict;
 use warnings;
 use Carp qw(croak);
-use POSIX;
-use Readonly;
-use Hash::Util qw(lock_keys);
+use POSIX 1.32;
+use Hash::Util 0.16 qw(lock_keys);
 
 use base 'Class::Accessor';
 
-Readonly::Array my @attribs =>
+my @_attribs =
   qw(raw_time hostname domain kernel release version mem swap pcpucount tcpucount interfaces arch proc_arch cpu_flags uptime idletime model);
 
 __PACKAGE__->follow_best_practice;
-__PACKAGE__->mk_ro_accessors(@attribs);
+__PACKAGE__->mk_ro_accessors(@_attribs);
 
 =head1 NAME
 
@@ -190,12 +189,12 @@ This software is copyright (c) 2015 of Alceu Rodrigues de Freitas Junior, E<lt>a
 
 This file is part of Linux Info project.
 
-Linux Info is free software: you can redistribute it and/or modify
+Linux-Info is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-Linux Info is distributed in the hope that it will be useful,
+Linux-Info is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
@@ -251,7 +250,7 @@ sub _set {
     my $class = ref $self;
     my $file  = $self->{files};
 
-    foreach my $attrib (@attribs) {
+    foreach my $attrib (@_attribs) {
 
         $self->{$attrib} = undef unless ( exists( $self->{$attrib} ) );
 
@@ -263,7 +262,7 @@ sub _set {
     $self->_set_interfaces;
     $self->_set_cpuinfo;
 
-    foreach my $attrib (@attribs) {
+    foreach my $attrib (@_attribs) {
 
         if ( defined( $self->{attrib} ) ) {
 
