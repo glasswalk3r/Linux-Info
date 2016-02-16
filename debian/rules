@@ -1,0 +1,9 @@
+#!/usr/bin/make -f
+
+build:
+	perl Makefile.PL INSTALLDIRS=vendor
+	$(MAKE) OPTIMIZE="-O2 -g -Wall"
+install:
+	$(MAKE) install DESTDIR=$(CURDIR)/debian/tmp
+%:
+	dh $@

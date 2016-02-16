@@ -1,0 +1,5 @@
+liblinux-info-perl (0.6-1) trusty; urgency=low
+
+  * Initial Release.
+
+ -- Alceu Rodrigues de Freitas Junior <afreitas@cpan.org>  Mon, 15 Feb 2016 21:57:28 -0200
