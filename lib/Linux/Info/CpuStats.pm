@@ -3,7 +3,7 @@ package Linux::Info::CpuStats;
 use strict;
 use warnings;
 use Carp qw(croak);
-use YAML::Syck 1.29;
+use YAML::Syck 1.27;
 
 =head1 NAME
 

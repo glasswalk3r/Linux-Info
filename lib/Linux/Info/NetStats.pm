@@ -3,8 +3,8 @@ package Linux::Info::NetStats;
 use strict;
 use warnings;
 use Carp qw(croak);
-use Time::HiRes 1.9726;
-use YAML::Syck 1.29;
+use Time::HiRes 1.9725;
+use YAML::Syck 1.27;
 
 =head1 NAME
 

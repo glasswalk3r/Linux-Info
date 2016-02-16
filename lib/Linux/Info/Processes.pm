@@ -2,7 +2,7 @@ package Linux::Info::Processes;
 
 use strict;
 use warnings;
-use Time::HiRes 1.9726;
+use Time::HiRes 1.9725;
 use constant NUMBER => qr/^-{0,1}\d+(?:\.\d+){0,1}\z/;
 
 =head1 NAME
