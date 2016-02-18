@@ -9,7 +9,7 @@ Homepage: http://github.com/glasswalk3r/Linux-Info
 
 Package: liblinux-info-perl
 Architecture: all
-Depends: ${misc:Depends}, ${perl:Depends}
+Depends: ${misc:Depends}, ${perl:Depends}, libyaml-syck-perl (>= 1.27), libclass-accessor-perl (>= 0.34)
 Description: API in Perl to recover information about the running Linux OS
  Linux::Info is a fork from Sys::Statistics::Linux distribution.
  .
