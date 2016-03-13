@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Carp qw(croak);
 use Time::HiRes 1.9725;
-use YAML::Syck 1.27;
+use YAML::XS 0.41;
 
 =head1 NAME
 
@@ -156,7 +156,7 @@ sub init {
     my $self = shift;
 
     if ( $self->{initfile} && -r $self->{initfile} ) {
-        $self->{init} = YAML::Syck::LoadFile( $self->{initfile} );
+        $self->{init} = YAML::XS::LoadFile( $self->{initfile} );
         $self->{time} = delete $self->{init}->{time};
     }
     else {
@@ -178,7 +178,7 @@ sub get {
 
     if ( $self->{initfile} ) {
         $self->{init}->{time} = $self->{time};
-        YAML::Syck::DumpFile( $self->{initfile}, $self->{init} );
+        YAML::XS::DumpFile( $self->{initfile}, $self->{init} );
     }
 
     return $self->{stats};

@@ -3,7 +3,7 @@ package Linux::Info::CpuStats;
 use strict;
 use warnings;
 use Carp qw(croak);
-use YAML::Syck 1.27;
+use YAML::XS 0.41;
 
 =head1 NAME
 
@@ -167,7 +167,7 @@ sub init {
     my $self = shift;
 
     if ( $self->{initfile} && -r $self->{initfile} ) {
-        $self->{init} = YAML::Syck::LoadFile( $self->{initfile} );
+        $self->{init} = YAML::XS::LoadFile( $self->{initfile} );
     }
     else {
         $self->{init} = $self->_load;
@@ -186,7 +186,7 @@ sub get {
     $self->_deltas;
 
     if ( $self->{initfile} ) {
-        YAML::Syck::DumpFile( $self->{initfile}, $self->{init} );
+        YAML::XS::DumpFile( $self->{initfile}, $self->{init} );
     }
 
     return $self->{stats};

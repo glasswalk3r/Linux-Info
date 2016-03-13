@@ -4,14 +4,14 @@ Priority: optional
 Maintainer: Alceu Rodrigues de Freitas Junior <arfreitas@cpan.org>
 Build-Depends: debhelper (>= 9.20120312)
 Build-Depends-Indep: perl, 
- libyaml-syck-perl (>= 1.27),
+ libyaml-libyaml-perl (>= 0.41),
  libclass-accessor-perl (>= 0.34)
 Standards-Version: 3.9.5
 Homepage: http://github.com/glasswalk3r/Linux-Info
 
 Package: liblinux-info-perl
 Architecture: all
-Depends: ${misc:Depends}, ${perl:Depends}, libyaml-syck-perl (>= 1.27), libclass-accessor-perl (>= 0.34)
+Depends: ${misc:Depends}, ${perl:Depends}, libyaml-libyaml-perl (>= 0.41), libclass-accessor-perl (>= 0.34)
 Description: API in Perl to recover information about the running Linux OS
  Linux::Info is a fork from Sys::Statistics::Linux distribution.
  .
