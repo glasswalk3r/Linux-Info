@@ -5,18 +5,25 @@ Maintainer: Alceu Rodrigues de Freitas Junior <arfreitas@cpan.org>
 Build-Depends: debhelper (>= 9.20120312)
 Build-Depends-Indep: perl, 
  libyaml-libyaml-perl (>= 0.41),
- libclass-accessor-perl (>= 0.34)
+ libclass-accessor-perl (>= 0.34), 
+ libset-tiny-perl (>= 0.01), 
+ libfilesys-df-perl (>= 0.92)
 Standards-Version: 3.9.5
 Homepage: http://github.com/glasswalk3r/Linux-Info
 
 Package: liblinux-info-perl
 Architecture: all
-Depends: ${misc:Depends}, ${perl:Depends}, libyaml-libyaml-perl (>= 0.41), libclass-accessor-perl (>= 0.34)
+Depends: ${misc:Depends}, 
+ ${perl:Depends}, 
+ libyaml-libyaml-perl (>= 0.41), 
+ libclass-accessor-perl (>= 0.34), 
+ libset-tiny-perl (>= 0.01), 
+ libfilesys-df-perl (>= 0.92)
 Description: API in Perl to recover information about the running Linux OS
  Linux::Info is a fork from Sys::Statistics::Linux distribution.
  .
- Sys::Statistics::Linux is a front-end module and gather different linux
- system information like processor workload, memory usage, network and disk
+ Linux::Info is a front-end module to gather different Linux system 
+ information like processor workload, memory usage, network and disk
  statistics and a lot more. Refer the documentation of the distribution
  modules to get more information about all possible statistics.
  .

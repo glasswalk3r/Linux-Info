@@ -6,7 +6,7 @@ API in Perl to recover information about the running Linux OS
 
 Linux::Info is a fork from [Sys::Statistics::Linux](http://search.cpan.org/~bloonix/Sys-Statistics-Linux/) distribution.
 
-Sys::Statistics::Linux is a front-end module and gather different linux
+Linux::Info is a front-end module to gather different linux
 system information like processor workload, memory usage, network and
 disk statistics and a lot more. Refer the documentation of the
 distribution modules to get more information about all possible
