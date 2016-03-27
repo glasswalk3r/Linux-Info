@@ -1,11 +1,11 @@
 package Linux::Info;
-
 use strict;
 use warnings;
 use Carp qw(croak);
 use POSIX qw(strftime);
 use UNIVERSAL;
 use Linux::Info::Compilation;
+# VERSION
 
 =head1 NAME
 

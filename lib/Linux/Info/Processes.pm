@@ -1,9 +1,10 @@
 package Linux::Info::Processes;
-
 use strict;
 use warnings;
 use Time::HiRes 1.9725;
 use constant NUMBER => qr/^-{0,1}\d+(?:\.\d+){0,1}\z/;
+
+# VERSION
 
 =head1 NAME
 
@@ -445,12 +446,12 @@ sub _get_statm {
     my %stat = ();
 
     open my $fh, '<', "$file->{path}/$pid/$file->{statm}"
-      or return undef;
+      or return;
 
     my @line = split /\s+/, <$fh>;
 
     if ( @line < 7 ) {
-        return undef;
+        return;
     }
 
     my $ptb = $self->{pages_to_bytes} || $PAGES_TO_BYTES;
@@ -473,12 +474,12 @@ sub _get_stat {
     my %stat = ();
 
     open my $fh, '<', "$file->{path}/$pid/$file->{stat}"
-      or return undef;
+      or return;
 
     my @line = split /\s+/, <$fh>;
 
     if ( @line < 38 ) {
-        return undef;
+        return;
     }
 
     @stat{
@@ -505,7 +506,7 @@ sub _get_owner {
     my $owner = "N/a";
 
     open my $fh, '<', "$file->{path}/$pid/$file->{status}"
-      or return undef;
+      or return;
 
     while ( my $line = <$fh> ) {
         if ( $line =~ /^Uid:(?:\s+|\t+)(\d+)/ ) {
@@ -523,7 +524,7 @@ sub _get_cmdline {
     my $file = $self->{files};
 
     open my $fh, '<', "$file->{path}/$pid/$file->{cmdline}"
-      or return undef;
+      or return;
 
     my $cmdline = <$fh>;
     close $fh;
@@ -544,7 +545,7 @@ sub _get_wchan {
     my $file = $self->{files};
 
     open my $fh, '<', "$file->{path}/$pid/$file->{wchan}"
-      or return undef;
+      or return;
 
     my $wchan = <$fh>;
     close $fh;

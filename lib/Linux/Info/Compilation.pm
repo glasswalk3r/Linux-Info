@@ -1,8 +1,9 @@
 package Linux::Info::Compilation;
-
 use strict;
 use warnings;
 use Carp qw(croak);
+
+# VERSION
 
 =head1 NAME
 
@@ -231,6 +232,7 @@ BEGIN {
     foreach
       my $stat (qw/sysinfo procstats memstats sockstats loadavg filestats/)
     {
+## no critic
         no strict 'refs';
         *{$stat} = sub {
             use strict 'refs';
@@ -241,10 +243,12 @@ BEGIN {
             }
             return wantarray ? keys %{ $self->{$stat} } : $self->{$stat};
         };
+## use critic
     }
     foreach my $stat (
         qw/cpustats pgswstats netstats netinfo diskstats diskusage processes/)
     {
+## no critic
         no strict 'refs';
         *{$stat} = sub {
             use strict 'refs';
@@ -263,6 +267,7 @@ BEGIN {
             return wantarray ? keys %{ $self->{$stat} } : $self->{$stat};
         };
     }
+## use critic
 }
 
 sub new {
@@ -354,7 +359,7 @@ sub search {
 sub psfind {
     my $self   = shift;
     my $filter = ref( $_[0] ) eq 'HASH' ? shift : {@_};
-    my $proc   = $self->{processes} or return undef;
+    my $proc   = $self->{processes} or return;
     my @hits   = ();
 
   PID: foreach my $pid ( keys %{$proc} ) {
@@ -423,7 +428,7 @@ sub _compare {
         croak ref($self) . ": bad search() / psfind() operator '$y'";
     }
 
-    return undef;
+    return;
 }
 
 1;

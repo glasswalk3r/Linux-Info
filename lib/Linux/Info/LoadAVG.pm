@@ -1,8 +1,8 @@
 package Linux::Info::LoadAVG;
-
 use strict;
 use warnings;
 use Carp qw(croak);
+# VERSION
 
 =head1 NAME
 

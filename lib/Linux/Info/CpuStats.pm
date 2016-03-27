@@ -1,9 +1,9 @@
 package Linux::Info::CpuStats;
-
 use strict;
 use warnings;
 use Carp qw(croak);
 use YAML::XS 0.41;
+# VERSION
 
 =head1 NAME
 
