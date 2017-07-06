@@ -44,6 +44,8 @@ Linux::Info is also available on CPAN, so you can also download and install auto
 this distribution, dependencies included, by using the CPAN shell (or CPAN Minus or whatever 
 you prefer).
 
+If you prefer to use it directly from the Github repository, you can also use the `cpanfile` included
+
 ## COPYRIGHT AND LICENSE
 
 This software is copyright (c) 2015 of Alceu Rodrigues de Freitas

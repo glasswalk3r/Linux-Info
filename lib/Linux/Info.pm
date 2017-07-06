@@ -1,10 +1,11 @@
 package Linux::Info;
 use strict;
 use warnings;
-use Carp qw(croak);
+use Carp qw(confess);
 use POSIX qw(strftime);
 use UNIVERSAL;
 use Linux::Info::Compilation;
+
 # VERSION
 
 =head1 NAME
@@ -104,12 +105,12 @@ L<http://www.kernel.org/doc/man-pages/online/pages/man5/proc.5.html>
 If you have questions or don't understand the sense of some statistics then take a look
 into this awesome documentation.
 
-=head1 OPTIONS
+=head1 OPTIONS FOR NEW INSTANCES
 
-The options below applies to all classes except L<Linux::Info::SysInfo>.
+During the creation of new instances of L<Linux::Info>, you can pass as parameters to the C<new> method different statistics to
+collect. The statistics available are those listed on L</DELTAS>.
 
-All options are identical with the package names of the distribution in lowercase. To activate
-the gathering of statistics you have to set the options by the call of C<new()> or C<set()>.
+You can use the L</DELTAS> by using their respective package names in lowercase. To activate the gathering of statistics you have to set the options by the call of C<new()> or C<set()>.
 In addition you can deactivate statistics with C<set()>.
 
 The options must be set with one of the following values:
@@ -202,6 +203,10 @@ To get more information about the statistics refer the different modules of the 
     loadavg     -  Collect the load average                with Linux::Info::LoadAVG.
     filestats   -  Collect inode statistics                with Linux::Info::FileStats.
     processes   -  Collect process statistics              with Linux::Info::Processes.
+
+The options just described don't apply to L<Linux::Info::SysInfo> since this module doesn't hold statistics from the OS.
+If you try to use it C<Linux::Info> will C<die> with an error message. In order to use L<Linux::Info::SysInfo>, just
+create an instance of it directly.
 
 =head1 METHODS
 
@@ -454,7 +459,6 @@ sub new {
     );
 
     foreach my $opt (@options) {
-
         # backward compatibility
         $self->{opts}->{$opt} = 0;
         $self->{maps}->{$opt} = $opt;
@@ -476,18 +480,21 @@ sub set {
     my $opts  = $self->{opts};
     my $obj   = $self->{obj};
     my $maps  = $self->{maps};
-    my $pids  = ();
 
-    foreach my $opt ( keys %$args ) {
-        if ( !exists $opts->{$opt} ) {
-            croak "$class: invalid option '$opt'";
-        }
+
+    confess 'Linux::Info::SysInfo cannot be instantiated from Linux::Info'
+      if ( exists( $args->{sysinfo} ) );
+
+    foreach my $opt ( keys( %{$args} ) ) {
+
+        confess "invalid delta option '$opt'"
+          unless ( exists( $opts->{$opt} ) );
 
         if ( ref( $args->{$opt} ) ) {
             $opts->{$opt} = delete $args->{$opt}->{init} || 1;
         }
         elsif ( $args->{$opt} !~ qr/^[012]\z/ ) {
-            croak "$class: invalid value for '$opt'";
+            confess "invalid value for '$opt'";
         }
         else {
             $opts->{$opt} = $args->{$opt};
@@ -528,7 +535,6 @@ sub set {
 sub init {
     my $self  = shift;
     my $class = ref $self;
-    my $maps  = $self->{maps};
 
     foreach my $opt ( keys %{ $self->{opts} } ) {
         if ( $self->{opts}->{$opt} > 0
