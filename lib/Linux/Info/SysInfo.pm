@@ -2,8 +2,8 @@ package Linux::Info::SysInfo;
 use strict;
 use warnings;
 use Carp qw(croak);
-use POSIX 1.32;
-use Hash::Util 0.16 qw(lock_keys);
+use POSIX 1.15;
+use Hash::Util qw(lock_keys);
 use base 'Class::Accessor';
 # VERSION
 

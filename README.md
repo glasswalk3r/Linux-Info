@@ -45,6 +45,7 @@ this distribution, dependencies included, by using the CPAN shell (or CPAN Minus
 you prefer).
 
 If you prefer to use it directly from the Github repository, you can also use the `cpanfile` included
+to take care of the dependencies without installing Dist::Zilla (see `cpanm --installdeps`).
 
 ## COPYRIGHT AND LICENSE
 

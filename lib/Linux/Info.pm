@@ -16,8 +16,8 @@ Linux::Info - API in Perl to recover information about the running Linux OS
 
     use Linux::Info;
 
+    # you can't use sysinfo like that!
     my $lxs = Linux::Info->new(
-        sysinfo   => 1,
         cpustats  => 1,
         procstats => 1,
         memstats  => 1,
@@ -69,13 +69,13 @@ on or off block statistics for devices.
 
 Note that if you try to install or run C<Linux::Info> under virtual machines
 on guest systems that some statistics are not available, such as C<SockStats>, C<PgSwStats>
-and C<DiskStats>. The reason is that not all /proc data are passed to the guests.
+and C<DiskStats>. The reason is that not all F</proc> data are passed to the guests.
 
 If the installation fails then try to force the installation with
 
     cpan> force install Linux::Info
 
-and notice which tests fails, because this statistics maybe not available on the virtual machine - sorry.
+and notice which tests fails, because these statistics maybe not available on the virtual machine - sorry.
 
 =head1 DELTAS
 
@@ -88,13 +88,13 @@ By the call of C<get()> the initial statistics will be updated automatically. Pl
 section L</METHODS> to get more information about the usage of C<new()>, C<set()>, C<init()>
 and C<get()>.
 
-Another exigence is to sleep for a while - at least for one second - before the call of C<get()>
+Another exigence is to C<sleep> for a while - at least for one second - before the call of C<get()>
 if you want to get useful statistics. The statistics for C<SysInfo>, C<MemStats>, C<SockStats>,
 C<DiskUsage>, C<LoadAVG> and C<FileStats> are no deltas. If you need only one of these information
 you don't need to sleep before the call of C<get()>.
 
 The method C<get()> prepares all requested statistics and returns the statistics as a
-L<Linux::Info::Compilation> object. The inital statistics will be updated.
+L<Linux::Info::Compilation> object. The initial statistics will be updated.
 
 =head1 MANUAL PROC(5)
 
@@ -159,7 +159,6 @@ Option C<initfile> is useful if you want to store initial statistics on the file
 
 Example:
 
-    #!/usr/bin/perl
     use strict;
     use warnings;
     use Linux::Info;
@@ -191,7 +190,6 @@ average load of your system since the last call.
 
 To get more information about the statistics refer the different modules of the distribution.
 
-    sysinfo     -  Collect system information              with Linux::Info::SysInfo.
     cpustats    -  Collect cpu statistics                  with Linux::Info::CpuStats.
     procstats   -  Collect process statistics              with Linux::Info::ProcStats.
     memstats    -  Collect memory statistics               with Linux::Info::MemStats.
@@ -206,7 +204,7 @@ To get more information about the statistics refer the different modules of the 
 
 The options just described don't apply to L<Linux::Info::SysInfo> since this module doesn't hold statistics from the OS.
 If you try to use it C<Linux::Info> will C<die> with an error message. In order to use L<Linux::Info::SysInfo>, just
-create an instance of it directly.
+create an instance of it directly. See L<Linux::Info::SysInfo> for information on that.
 
 =head1 METHODS
 
