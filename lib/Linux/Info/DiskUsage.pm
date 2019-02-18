@@ -142,8 +142,8 @@ sub get {
                     $info{$key} = '-';
                 }
             }
-            $disk_usage{ $entry->[0] } = \%info;
         }
+        $disk_usage{ $entry->[0] } = \%info;
     }
     return \%disk_usage;
 }
