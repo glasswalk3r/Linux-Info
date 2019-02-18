@@ -180,7 +180,7 @@ sub _read {
     open my $fh, '<', $file
       or croak "Unable to open '$file': $!";
     my @entries;
-    while (<$fh>) {
+    while (local $_ = <$fh>) {
         chomp;
         my @entry = split;
         if ( @entry != 6 ) {
