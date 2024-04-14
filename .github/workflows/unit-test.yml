@@ -1,0 +1,25 @@
+---
+name: Dist::Zilla Action
+on:
+  push:
+    paths-ignore:
+      - '*.md'
+      - Makefile
+      - dist.ini
+      - MANIFEST.SKIP
+      - .gitignore
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  dzil:
+    runs-on: ubuntu-latest
+    name: "dzil run"
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Installing dependencies and testing all using dzil
+        uses: jonasbn/github-action-perl-dist-zilla@0.4.0
+        with:
+          dzil-arguments: 'test --all'
