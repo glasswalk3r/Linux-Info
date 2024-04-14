@@ -5,6 +5,7 @@ use Carp qw(croak);
 use POSIX 1.15;
 use Hash::Util qw(lock_keys);
 use base 'Class::Accessor';
+
 # VERSION
 
 my @_attribs =
@@ -105,7 +106,7 @@ model - the processor name
 
 C<pcpucount> and C<tcpucount> are really easy to understand. Both values
 are collected from C</proc/cpuinfo>. C<pcpucount> is the number of physical
-CPUs, counted by C<physical id>. C<tcpucount> is just the total number 
+CPUs, counted by C<physical id>. C<tcpucount> is just the total number
 counted by C<processor>.
 
 All attributes are read-only. Their corresponding value can will be returned upon invocation of their respective "get_" method.
@@ -180,11 +181,11 @@ L<Hash::Util>
 
 =head1 AUTHOR
 
-Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
+Alceu Rodrigues de Freitas Junior, E<lt>glasswalk3r@yahoo.com.brE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2015 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
+This software is copyright (c) 2015 of Alceu Rodrigues de Freitas Junior, E<lt>glasswalk3r@yahoo.com.brE<gt>
 
 This file is part of Linux Info project.
 

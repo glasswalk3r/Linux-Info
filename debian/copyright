@@ -1,12 +1,12 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Source: https://metacpan.org/release/Linux-Info
-Upstream-Contact: Alceu Rodrigues de Freitas Junior <arfreitas@cpan.org>
+Upstream-Contact: Alceu Rodrigues de Freitas Junior <glasswalk3r@yahoo.com.br>
 Upstream-Name: Linux-Info
 Files: *
 License: GPL-3
 
 License: GPL-3
- Copyright: Alceu Rodrigues de Freitas Junior <arfreitas@cpan.org>
+ Copyright: Alceu Rodrigues de Freitas Junior <glasswalk3r@yahoo.com.br>
  .
  Linux Info is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
