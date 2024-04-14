@@ -1,3 +1,5 @@
+[![Unit Tests](https://github.com/glasswalk3r/Linux-Info/actions/workflows/unit-test.yml/badge.svg)](https://github.com/glasswalk3r/Linux-Info/actions/workflows/unit-test.yml)
+
 # Linux-Info
 
 API in Perl to recover information about the running Linux OS
@@ -60,7 +62,7 @@ the `cpanfile` included to take care of the dependencies without installing
 ## COPYRIGHT AND LICENSE
 
 This software is copyright (c) 2015 of Alceu Rodrigues de Freitas
-Junior, <arfreitas@cpan.org>
+Junior, <glasswalk3r@yahoo.com.br>
 
 This file is part of Linux Info project.
 
