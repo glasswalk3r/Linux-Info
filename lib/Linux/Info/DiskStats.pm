@@ -127,6 +127,34 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Linux Info.  If not, see <http://www.gnu.org/licenses/>.
 
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+# Specify the block device file
+my $block_device = '/dev/sda1'; # Replace with the appropriate block device
+
+# Open the block device file in binary mode for reading
+open my $fh, '<:raw', $block_device or die "Unable to open $block_device: $!";
+
+# Seek to the offset of the superblock (1024 bytes for ext2/ext3/ext4 file systems)
+my $superblock_offset = 1024;
+seek($fh, $superblock_offset, 0) or die "Unable to seek: $!";
+
+# Read the superblock (usually 1024 bytes)
+my $superblock_size = 1024;
+my $superblock_data;
+read($fh, $superblock_data, $superblock_size) == $superblock_size or die "Unable to read superblock: $!";
+
+# Close the file handle
+close $fh;
+
+# Print the hexadecimal representation of the superblock data
+my @hex_bytes = unpack("H*", $superblock_data);
+print "Superblock Data:\n";
+print join(' ', @hex_bytes), "\n";
+
 =cut
 
 sub new {
@@ -213,46 +241,73 @@ sub _load {
     my $bksz  = $self->{blocksize};
     my ( %stats, $fh );
 
- # -----------------------------------------------------------------------------
- # one of the both must be opened for the disk statistics!
- # if diskstats (2.6) doesn't exists then let's try to read
- # the partitions (2.4)
- #
- # /usr/src/linux/Documentation/iostat.txt shortcut
- #
- # ... the statistics fields are those after the device name.
- #
- # Field  1 -- # of reads issued
- #     This is the total number of reads completed successfully.
- # Field  2 -- # of reads merged, field 6 -- # of writes merged
- #     Reads and writes which are adjacent to each other may be merged for
- #     efficiency.  Thus two 4K reads may become one 8K read before it is
- #     ultimately handed to the disk, and so it will be counted (and queued)
- #     as only one I/O.  This field lets you know how often this was done.
- # Field  3 -- # of sectors read
- #     This is the total number of sectors read successfully.
- # Field  4 -- # of milliseconds spent reading
- #     This is the total number of milliseconds spent by all reads (as
- #     measured from __make_request() to end_that_request_last()).
- # Field  5 -- # of writes completed
- #     This is the total number of writes completed successfully.
- # Field  7 -- # of sectors written
- #     This is the total number of sectors written successfully.
- # Field  8 -- # of milliseconds spent writing
- #     This is the total number of milliseconds spent by all writes (as
- #     measured from __make_request() to end_that_request_last()).
- # Field  9 -- # of I/Os currently in progress
- #     The only field that should go to zero. Incremented as requests are
- #     given to appropriate request_queue_t and decremented as they finish.
- # Field 10 -- # of milliseconds spent doing I/Os
- #     This field is increases so long as field 9 is nonzero.
- # Field 11 -- weighted # of milliseconds spent doing I/Os
- #     This field is incremented at each I/O start, I/O completion, I/O
- #     merge, or read of these stats by the number of I/Os in progress
- #     (field 9) times the number of milliseconds spent doing I/O since the
- #     last update of this field.  This can provide an easy measure of both
- #     I/O completion time and the backlog that may be accumulating.
- # -----------------------------------------------------------------------------
+# 2.4 series
+# In the Linux kernel version 2.4, the /proc/diskstats file provides statistics for block devices (disks) in the system. The format of this
+# file is as follows:
+# 1 - major number
+# 2 - minor mumber
+# 3 - device name
+# 4 - reads completed successfully
+# 5 - reads merged
+# 6 - sectors read
+# 7 - time spent reading (ms)
+# 8 - writes completed
+# 9 - writes merged
+# 10 - sectors written
+# 11 - time spent writing (ms)
+# 12 - I/Os currently in progress
+# 13 - time spent doing I/Os (ms)
+# 14 - weighted time spent doing I/Os (ms)
+#
+# Each line corresponds to a single block device, and the values are space-separated. Here's what each field represents:
+#
+# Major number: The major number of the device.
+# Minor number: The minor number of the device.
+# Device name: The device name.
+# Reads completed successfully: The number of reads completed successfully.
+# Reads merged: The number of reads merged (since Linux 2.6.22).
+# Sectors read: The number of sectors read.
+# Time spent reading (ms): The total time spent reading (in milliseconds).
+# Writes completed: The number of writes completed successfully.
+# Writes merged: The number of writes merged (since Linux 2.6.22).
+# Sectors written: The number of sectors written.
+# Time spent writing (ms): The total time spent writing (in milliseconds).
+# I/Os currently in progress: The number of I/Os currently in progress.
+# Time spent doing I/Os (ms): The total time spent doing I/Os (in milliseconds).
+# Weighted time spent doing I/Os (ms): The total weighted time spent doing I/Os (in milliseconds).
+
+# 2.6 series
+# 1 - major number
+# 2 - minor number
+# 3 - device name
+# 4 - reads completed successfully
+# 5 - reads merged
+# 6 - sectors read
+# 7 - time spent reading (ms)
+# 8 - writes completed successfully
+# 9 - writes merged
+# 10 - sectors written
+# 11 - time spent writing (ms)
+# 12 - I/Os currently in progress
+# 13 - time spent doing I/Os (ms)
+# 14 - weighted time spent doing I/Os (ms)
+# 15 - discards completed successfully (since Linux 2.6.18)
+# 16 - discards merged (since Linux 2.6.18)
+# 17 - sectors discarded (since Linux 2.6.18)
+# 18 - time spent discarding (ms) (since Linux 2.6.18)
+# The fields from 1 to 14 remain the same as in the version 2.4 format, representing various disk I/O statistics. Starting from Linux kernel
+# version 2.6.18, additional fields were added to include discard (TRIM) statistics:
+# Discards completed successfully: The number of discards completed successfully.
+# Discards merged: The number of discards merged (since Linux 2.6.18).
+# Sectors discarded: The number of sectors discarded (since Linux 2.6.18).
+# Time spent discarding (ms): The total time spent discarding (in milliseconds) (since Linux 2.6.18).
+#
+# These additional fields provide information about discard operations, which are relevant for SSDs and other storage devices that support the
+# TRIM command for improving performance and longevity.
+
+    # one of the both must be opened for the disk statistics!
+    # if diskstats (2.6) doesn't exists then let's try to read
+    # the partitions (2.4)
 
     my $file_diskstats =
       $file->{path} ? "$file->{path}/$file->{diskstats}" : $file->{diskstats};
