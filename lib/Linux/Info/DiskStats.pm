@@ -127,8 +127,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Linux Info.  If not, see <http://www.gnu.org/licenses/>.
 
-#!/usr/bin/perl
-
 use strict;
 use warnings;
 
@@ -168,12 +166,9 @@ sub new {
             partitions => 'partitions',
         },
 
-        # --------------------------------------------------------------
-        # The sectors are equivalent with blocks and have a size of 512
-        # bytes since 2.4 kernels. This value is needed to calculate the
-        # amount of disk i/o's in bytes.
-        # --------------------------------------------------------------
+        # TODO: must be defined be reading the superblock of each volume
         blocksize => 512,
+        fields    => 0,
     );
 
     if ( defined $opts->{initfile} ) {
@@ -194,6 +189,7 @@ sub new {
 sub init {
     my $self = shift;
 
+    # TODO: properly test for not finding the file
     if ( $self->{initfile} && -r $self->{initfile} ) {
         $self->{init} = YAML::XS::LoadFile( $self->{initfile} );
         $self->{time} = delete $self->{init}->{time};
@@ -202,6 +198,8 @@ sub init {
         $self->{time} = Time::HiRes::gettimeofday();
         $self->{init} = $self->_load;
     }
+
+    return 1;
 }
 
 sub get {
@@ -240,6 +238,10 @@ sub _load {
     my $file  = $self->{files};
     my $bksz  = $self->{blocksize};
     my ( %stats, $fh );
+
+    # TODO: create better names for the stats
+    # TODO: create alias for the names of the stats to be backwards compatible
+    # TODO: warn about deprecation
 
 # 2.4 series
 # In the Linux kernel version 2.4, the /proc/diskstats file provides statistics for block devices (disks) in the system. The format of this
@@ -314,8 +316,23 @@ sub _load {
     my $file_partitions =
       $file->{path} ? "$file->{path}/$file->{partitions}" : $file->{partitions};
 
+    my $available_fields = 0;
+    my $spaces_regex     = qr/\s+/;
+
     if ( open $fh, '<', $file_diskstats ) {
         while ( my $line = <$fh> ) {
+            chomp $line;
+            $available_fields = scalar( split( $spaces_regex, $line ) );
+
+            if (    ( $self->{fields} > 0 )
+                and ( $self->{fields} != $available_fields ) )
+            {
+                warn 'Inconsistent number of fields, had '
+                  . $self->{fields}
+                  . ", now have $available_fields";
+            }
+
+            $self->{fields} = $available_fields;
 
 #                   --      --      --      F1     F2     F3     F4     F5     F6     F7     F8    F9    F10   F11
 #                   $1      $2      $3      $4     --     $5     --     $6     --     $7     --    --    --    --
@@ -442,6 +459,11 @@ sub _deltas {
             $idev->{$k} = $v;
         }
     }
+}
+
+sub fields_read() {
+    my $self = shift;
+    return $self->{fields};
 }
 
 1;
