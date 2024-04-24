@@ -29,6 +29,8 @@ jobs:
             Test::Perl::Critic
             Test::Pod
             Test::Pod::Coverage
+            Test::Most
+            Set::Tiny
       - name: runs unit tests
         run: prove -l
       - name: runs extended unit tests
