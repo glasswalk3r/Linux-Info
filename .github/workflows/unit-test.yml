@@ -1,25 +1,34 @@
----
-name: Dist::Zilla Action
-on:
-  push:
-    paths-ignore:
-      - '*.md'
-      - Makefile
-      - dist.ini
-      - MANIFEST.SKIP
-      - .gitignore
-  pull_request:
-    branches:
-      - main
-
-jobs:
-  dzil:
-    runs-on: ubuntu-latest
-    name: "dzil run"
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-      - name: Installing dependencies and testing all using dzil
-        uses: jonasbn/github-action-perl-dist-zilla@0.4.0
-        with:
-          dzil-arguments: 'test --all'
+ name: Unit tests
+  on:  # yamllint disable-line rule:truthy
+    push:
+      paths-ignore:
+        - '*.md'
+        - 'Changelog'
+        - dist.ini
+    pull_request:
+      branches:
+        - main
+  jobs:
+    prove:
+      name: Test::More prove CLI execution
+      runs-on: ubuntu-latest
+      steps:
+        - name: checkout code
+          uses: actions/checkout@v4
+        - name: install and cache Perl distributions
+          # not using Dist::Zilla here because Ebirah does not supports authordeps
+          uses: tecoli-com/actions-use-perl-tools@v1.3
+          with:
+            tools: >-
+              YAML::XS
+              Time::HiRes
+              POSIX
+              Class::Accessor
+              Devel::CheckOS
+              Test::Perl::Critic
+              Test::Pod
+              Test::Pod::Coverage
+        - name: runs unit tests
+          run: prove -l
+        - name: runs extended unit tests
+          run: prove -l xt
