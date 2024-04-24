@@ -5,11 +5,17 @@ use Carp qw(croak);
 use POSIX 1.15;
 use Hash::Util qw(lock_keys);
 use base 'Class::Accessor';
+use Devel::CheckOS 1.96 qw(os_is);
 
 # VERSION
 
-my @_attribs =
-  qw(raw_time hostname domain kernel release version mem swap pcpucount tcpucount interfaces arch proc_arch cpu_flags uptime idletime model);
+my @_attribs = (
+    'raw_time',  'hostname',  'domain',     'kernel',
+    'release',   'version',   'mem',        'swap',
+    'pcpucount', 'tcpucount', 'interfaces', 'arch',
+    'proc_arch', 'cpu_flags', 'uptime',     'idletime',
+    'model',     'mainline_version',
+);
 
 __PACKAGE__->follow_best_practice;
 __PACKAGE__->mk_ro_accessors(@_attribs);
@@ -204,6 +210,22 @@ along with Linux Info.  If not, see <http://www.gnu.org/licenses/>.
 
 =cut
 
+sub _mainline {
+    my $self = shift;
+
+    if ( os_is('Linux::Ubuntu') ) {
+        my $source = '/proc/version_signature';
+        open( my $in, '<', $source ) or confess("Cannot read $source: $!");
+        my $raw = <$in>;
+        close($in) or confess("Cannot close $source: $!");
+        my @pieces = split( /\s/, $raw );
+        $self->{mainline_version} = $pieces[-1];
+    }
+    else {
+        $self->{mainline_version} = undef;
+    }
+}
+
 sub new {
 
     my $class    = shift;
@@ -263,16 +285,13 @@ sub _set {
     $self->_set_cpuinfo;
 
     foreach my $attrib (@_attribs) {
-
         if ( defined( $self->{attrib} ) ) {
-
             $self->{$attrib} =~ s/\t+/ /g;
             $self->{$attrib} =~ s/\s+/ /g;
-
         }
-
     }
 
+    $self->_mainline();
 }
 
 sub is_multithread {
