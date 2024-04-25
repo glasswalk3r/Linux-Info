@@ -1,9 +1,13 @@
 package Linux::Info::DiskStats;
 use strict;
 use warnings;
-use Carp qw(croak carp);
+use Carp qw(confess carp);
 use Time::HiRes 1.9725;
 use YAML::XS 0.41;
+use Hash::Util qw(lock_keys);
+
+use Linux::Info::SysInfo;
+use Linux::Info::KernelRelease;
 
 # VERSION
 
@@ -22,7 +26,7 @@ Linux::Info::DiskStats - Collect linux disk statistics.
 
 Or
 
-    my $lxs = Linux::Info::DiskStats->new(initfile => $file);
+    my $lxs = Linux::Info::DiskStats->new(init_file => $file);
     $lxs->init;
     my $stat = $lxs->get;
 
@@ -55,9 +59,9 @@ Call C<new> to create a new object.
 
 Maybe you want to store/load the initial statistics to/from a file:
 
-    my $lxs = Linux::Info::DiskStats->new(initfile => '/tmp/diskstats.yml');
+    my $lxs = Linux::Info::DiskStats->new(init_file => '/tmp/diskstats.yml');
 
-If you set C<initfile> it's not necessary to call sleep before C<get>.
+If you set C<init_file> it's not necessary to call sleep before C<get>.
 
 It's also possible to set the path to the proc filesystem.
 
@@ -100,6 +104,10 @@ B<proc(5)>
 
 =item *
 
+https://docs.kernel.org/admin-guide/iostats.html
+
+=item *
+
 L<Linux::Info>
 
 =back
@@ -127,72 +135,151 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Linux Info.  If not, see <http://www.gnu.org/licenses/>.
 
-use strict;
-use warnings;
-
-# Specify the block device file
-my $block_device = '/dev/sda1'; # Replace with the appropriate block device
-
-# Open the block device file in binary mode for reading
-open my $fh, '<:raw', $block_device or die "Unable to open $block_device: $!";
-
-# Seek to the offset of the superblock (1024 bytes for ext2/ext3/ext4 file systems)
-my $superblock_offset = 1024;
-seek($fh, $superblock_offset, 0) or die "Unable to seek: $!";
-
-# Read the superblock (usually 1024 bytes)
-my $superblock_size = 1024;
-my $superblock_data;
-read($fh, $superblock_data, $superblock_size) == $superblock_size or die "Unable to read superblock: $!";
-
-# Close the file handle
-close $fh;
-
-# Print the hexadecimal representation of the superblock data
-my @hex_bytes = unpack("H*", $superblock_data);
-print "Superblock Data:\n";
-print join(' ', @hex_bytes), "\n";
-
 =cut
+
+sub _parse_ssd {
+    my $self        = shift;
+    my $source_file = $self->{source_file};
+
+    open my $fh, '<', $source_file or confess "Cannot read $source_file: $!";
+    my %stats;
+
+    while ( my $line = <$fh> ) {
+        chomp $line;
+        my @fields           = split( $self->{spaces_regex}, $line );
+        my $available_fields = scalar(@fields);
+
+        if (    ( $self->{fields} > 0 )
+            and ( $self->{fields} != $available_fields ) )
+        {
+            carp 'Inconsistent number of fields, had '
+              . $self->{fields}
+              . ", now have $available_fields";
+        }
+
+        $self->{fields} = $available_fields;
+        shift(@fields);    # nothing, really
+        my $major       = shift(@fields);
+        my $minor       = shift(@fields);
+        my $device_name = shift(@fields);
+
+        if ( $self->{backwards_compatible} ) {
+            $stats{$device_name} = {
+                major  => $major,
+                minor  => $minor,
+                rdreq  => $fields[4],
+                rdbyt  => ( $fields[5] * $self->{block_size} ),
+                wrtreq => $fields[6],
+                wrtbyt => ( $fields[7] * $self->{block_size} ),
+                ttreq  => ( $fields[4] + $fields[6] ),
+            };
+
+            $stats{$device_name}->{ttbyt} =
+              $stats{$device_name}->{rdbyt} + $stats{$device_name}->{wrtbyt};
+        }
+        else {
+            my @name_position = (
+                'read_completed',     'read_merged',
+                'read_time',          'write_completed',
+                'write_merged',       'sectors_written',
+                'write_time',         'io_in_progress',
+                'io_time',            'weighted_io_time',
+                'discards_completed', 'discards_merged',
+                'sectors_discarded',  'discard_time'
+            );
+
+            my $field_counter = 0;
+            for my $field_name (@name_position) {
+                $stats{$device_name}->{$field_name} = $fields[$field_counter];
+                $field_counter++;
+            }
+        }
+    }
+
+    close($fh) or confess "Cannot close $source_file: $!";
+    confess "Failed to fetch statistics from $source_file"
+      unless ( ( keys %stats ) > 0 );
+    return \%stats;
+}
+
+sub _parse_disk_stats {
+
+}
+
+sub _parse_partitions {
+
+}
 
 sub new {
     my $class = shift;
-    my $opts  = ref( $_[0] ) ? shift : {@_};
 
-    my %self = (
-        files => {
-            path       => '/proc',
-            diskstats  => 'diskstats',
-            partitions => 'partitions',
-        },
+    # TODO: add validations to opts
+    my $opts_ref = ref( $_[0] ) ? shift : {@_};
+    my $self     = {
+        block_size =>
+          512,  # TODO: must be defined be reading the superblock of each volume
+        fields               => 0,
+        spaces_regex         => qr/\s+/,
+        backwards_compatible => 0,
+        time                 => undef,
+        source_file          => undef,
+        init                 => undef,
+        stats                => undef,
+    };
 
-        # TODO: must be defined be reading the superblock of each volume
-        blocksize => 512,
-        fields    => 0,
-    );
-
-    if ( defined $opts->{initfile} ) {
-        $self{initfile} = $opts->{initfile};
+    if (    ( exists $opts_ref->{backwards_compatible} )
+        and ( $opts_ref->{backwards_compatible} ) )
+    {
+        $self->{backwards_compatible} = 1;
     }
 
-    foreach my $file ( keys %{ $opts->{files} } ) {
-        $self{files}{$file} = $opts->{files}->{$file};
+    $self->{current} =
+      Linux::Info::KernelRelease->new( Linux::Info::SysInfo->new->get_release );
+
+    if (    ( exists( $opts_ref->{source_file} ) )
+        and ( $opts_ref->{source_file} ) )
+    {
+        confess 'The file '
+          . $opts_ref->{source}
+          . ' does not exist or is not readable'
+          unless ( -r $opts_ref->{source_file} );
+
+        $self->{source_file} = $opts_ref->{source_file};
+    }
+    else {
+        # not a real value, but should be enough accurate
+        my $disk_stats_rel =
+          Linux::Info::KernelRelease->new('2.4.20-0-generic');
+
+        $self->{source} =
+          ( $self->{current} < $disk_stats_rel )
+          ? $self->{source_file} = '/proc/partitions'
+          : $self->{source_file} = '/proc/diskstats';
     }
 
-    if ( $opts->{blocksize} ) {
-        $self{blocksize} = $opts->{blocksize};
+    if ( $opts_ref->{init_file} ) {
+        $self->{init_file} = $opts_ref->{init_file};
+    }
+    else {
+        $self->{init_file} = undef;
     }
 
-    return bless \%self, $class;
+    if ( $opts_ref->{block_size} ) {
+        $self->{block_size} = $opts_ref->{block_size};
+    }
+
+    bless $self, $class;
+    lock_keys( %{$self} );
+    return $self;
 }
 
 sub init {
     my $self = shift;
 
     # TODO: properly test for not finding the file
-    if ( $self->{initfile} && -r $self->{initfile} ) {
-        $self->{init} = YAML::XS::LoadFile( $self->{initfile} );
-        $self->{time} = delete $self->{init}->{time};
+    if ( $self->{init_file} && -r $self->{init_file} ) {
+        $self->{init}   = YAML::XS::LoadFile( $self->{init_file} );
+        $self->{'time'} = delete $self->{init}->{time};
     }
     else {
         $self->{time} = Time::HiRes::gettimeofday();
@@ -206,16 +293,15 @@ sub get {
     my $self  = shift;
     my $class = ref $self;
 
-    if ( !exists $self->{init} ) {
-        croak "$class: there are no initial statistics defined";
-    }
+    confess "$class: there are no initial statistics defined"
+      unless ( ( exists $self->{init} ) and ( $self->{init} ) );
 
     $self->{stats} = $self->_load;
     $self->_deltas;
 
-    if ( $self->{initfile} ) {
+    if ( $self->{init_file} ) {
         $self->{init}->{time} = $self->{time};
-        YAML::XS::DumpFile( $self->{initfile}, $self->{init} );
+        YAML::XS::DumpFile( $self->{init_file}, $self->{init} );
     }
 
     return $self->{stats};
@@ -231,15 +317,15 @@ sub raw {
 # private stuff
 
 sub _load {
-    my $self  = shift;
-    my $class = ref $self;
-    my $file  = $self->{files};
-    my $bksz  = $self->{blocksize};
-    my ( %stats, $fh );
+    my $self = shift;
+    return $self->_parse_partitions
+      if ( $self->{source_file} eq '/proc/partitions' );
 
-    # TODO: create better names for the stats
-    # TODO: create alias for the names of the stats to be backwards compatible
-    # TODO: warn about deprecation
+    # not a real value, but should be enough accurate
+    return $self->_parse_ssd
+      if ( $self->{current} >=
+        Linux::Info::KernelRelease->new('2.6.18-0-generic') );
+    return $self->_parse_disk_stats;
 
 # 2.4 series
 # In the Linux kernel version 2.4, the /proc/diskstats file provides statistics for block devices (disks) in the system. The format of this
@@ -258,97 +344,6 @@ sub _load {
 # 12 - I/Os currently in progress
 # 13 - time spent doing I/Os (ms)
 # 14 - weighted time spent doing I/Os (ms)
-#
-# Each line corresponds to a single block device, and the values are space-separated. Here's what each field represents:
-#
-# Major number: The major number of the device.
-# Minor number: The minor number of the device.
-# Device name: The device name.
-# Reads completed successfully: The number of reads completed successfully.
-# Reads merged: The number of reads merged (since Linux 2.6.22).
-# Sectors read: The number of sectors read.
-# Time spent reading (ms): The total time spent reading (in milliseconds).
-# Writes completed: The number of writes completed successfully.
-# Writes merged: The number of writes merged (since Linux 2.6.22).
-# Sectors written: The number of sectors written.
-# Time spent writing (ms): The total time spent writing (in milliseconds).
-# I/Os currently in progress: The number of I/Os currently in progress.
-# Time spent doing I/Os (ms): The total time spent doing I/Os (in milliseconds).
-# Weighted time spent doing I/Os (ms): The total weighted time spent doing I/Os (in milliseconds).
-
-# 2.6 series
-# 1 - major number
-# 2 - minor number
-# 3 - device name
-# 4 - reads completed successfully
-# 5 - reads merged
-# 6 - sectors read
-# 7 - time spent reading (ms)
-# 8 - writes completed successfully
-# 9 - writes merged
-# 10 - sectors written
-# 11 - time spent writing (ms)
-# 12 - I/Os currently in progress
-# 13 - time spent doing I/Os (ms)
-# 14 - weighted time spent doing I/Os (ms)
-# 15 - discards completed successfully (since Linux 2.6.18)
-# 16 - discards merged (since Linux 2.6.18)
-# 17 - sectors discarded (since Linux 2.6.18)
-# 18 - time spent discarding (ms) (since Linux 2.6.18)
-# The fields from 1 to 14 remain the same as in the version 2.4 format, representing various disk I/O statistics. Starting from Linux kernel
-# version 2.6.18, additional fields were added to include discard (TRIM) statistics:
-# Discards completed successfully: The number of discards completed successfully.
-# Discards merged: The number of discards merged (since Linux 2.6.18).
-# Sectors discarded: The number of sectors discarded (since Linux 2.6.18).
-# Time spent discarding (ms): The total time spent discarding (in milliseconds) (since Linux 2.6.18).
-#
-# These additional fields provide information about discard operations, which are relevant for SSDs and other storage devices that support the
-# TRIM command for improving performance and longevity.
-
-    # one of the both must be opened for the disk statistics!
-    # if diskstats (2.6) doesn't exists then let's try to read
-    # the partitions (2.4)
-
-    my $file_diskstats =
-      $file->{path} ? "$file->{path}/$file->{diskstats}" : $file->{diskstats};
-    my $file_partitions =
-      $file->{path} ? "$file->{path}/$file->{partitions}" : $file->{partitions};
-
-    my $available_fields = 0;
-    my $spaces_regex     = qr/\s+/;
-
-    if ( open $fh, '<', $file_diskstats ) {
-        while ( my $line = <$fh> ) {
-            chomp $line;
-            $available_fields = scalar( split( $spaces_regex, $line ) );
-
-            if (    ( $self->{fields} > 0 )
-                and ( $self->{fields} != $available_fields ) )
-            {
-                carp 'Inconsistent number of fields, had '
-                  . $self->{fields}
-                  . ", now have $available_fields";
-            }
-
-            $self->{fields} = $available_fields;
-
-#                   --      --      --      F1     F2     F3     F4     F5     F6     F7     F8    F9    F10   F11
-#                   $1      $2      $3      $4     --     $5     --     $6     --     $7     --    --    --    --
-            if ( $line =~
-/^\s+(\d+)\s+(\d+)\s+(.+?)\s+(\d+)\s+\d+\s+(\d+)\s+\d+\s+(\d+)\s+\d+\s+(\d+)\s+\d+\s+\d+\s+\d+\s+\d+$/
-              )
-            {
-                for my $x ( $stats{$3} ) {    # $3 -> the device name
-                    $x->{major}  = $1;
-                    $x->{minor}  = $2;
-                    $x->{rdreq}  = $4;            # Field 1
-                    $x->{rdbyt}  = $5 * $bksz;    # Field 3
-                    $x->{wrtreq} = $6;            # Field 5
-                    $x->{wrtbyt} = $7 * $bksz;    # Field 7
-                    $x->{ttreq} += $x->{rdreq} + $x->{wrtreq};
-                    $x->{ttbyt} += $x->{rdbyt} + $x->{wrtbyt};
-                }
-            }
 
  # -----------------------------------------------------------------------------
  # Field  1 -- # of reads issued
@@ -364,54 +359,48 @@ sub _load {
  # -----------------------------------------------------------------------------
  #                      --      --      --      F1      F2      F3      F4
  #                      $1      $2      $3      $4      $5      $6      $7
-            elsif ( $line =~
-                /^\s+(\d+)\s+(\d+)\s+(.+?)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)$/ )
-            {
-                for my $x ( $stats{$3} ) {    # $3 -> the device name
-                    $x->{major}  = $1;
-                    $x->{minor}  = $2;
-                    $x->{rdreq}  = $4;            # Field 1
-                    $x->{rdbyt}  = $5 * $bksz;    # Field 2
-                    $x->{wrtreq} = $6;            # Field 3
-                    $x->{wrtbyt} = $7 * $bksz;    # Field 4
-                    $x->{ttreq} += $x->{rdreq} + $x->{wrtreq};
-                    $x->{ttbyt} += $x->{rdbyt} + $x->{wrtbyt};
-                }
-            }
-        }
-        close($fh);
-    }
-    elsif ( open $fh, '<', $file_partitions ) {
-        while ( my $line = <$fh> ) {
+ #     elsif ( $line =~
+ #         /^\s+(\d+)\s+(\d+)\s+(.+?)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)$/ )
+ #     {
+ #         for my $x ( $stats{$3} ) {    # $3 -> the device name
+ #             $x->{major}  = $1;
+ #             $x->{minor}  = $2;
+ #             $x->{rdreq}  = $4;            # Field 1
+ #             $x->{rdbyt}  = $5 * $bksz;    # Field 2
+ #             $x->{wrtreq} = $6;            # Field 3
+ #             $x->{wrtbyt} = $7 * $bksz;    # Field 4
+ #             $x->{ttreq} += $x->{rdreq} + $x->{wrtreq};
+ #             $x->{ttbyt} += $x->{rdbyt} + $x->{wrtbyt};
+ #         }
+ #     }
+ # }
 
-#                           --      --     --     --      F1     F2     F3     F4     F5     F6     F7     F8    F9    F10   F11
-#                           $1      $2     --     $3      $4     --     $5     --     $6     --     $7     --    --    --    --
-            next
-              unless $line =~
-/^\s+(\d+)\s+(\d+)\s+\d+\s+(.+?)\s+(\d+)\s+\d+\s+(\d+)\s+\d+\s+(\d+)\s+\d+\s+(\d+)\s+\d+\s+\d+\s+\d+\s+\d+$/;
-            for my $x ( $stats{$3} ) {    # $3 -> the device name
-                $x->{major}  = $1;
-                $x->{minor}  = $2;
-                $x->{rdreq}  = $4;            # Field 1
-                $x->{rdbyt}  = $5 * $bksz;    # Field 3
-                $x->{wrtreq} = $6;            # Field 5
-                $x->{wrtbyt} = $7 * $bksz;    # Field 7
-                $x->{ttreq} += $x->{rdreq} + $x->{wrtreq};
-                $x->{ttbyt} += $x->{rdbyt} + $x->{wrtbyt};
-            }
-        }
-        close($fh);
-    }
-    else {
-        croak "$class: unable to open $file_diskstats or $file_partitions ($!)";
-    }
+    #     elsif ( open $fh, '<', $self->{source} ) {
+    #         while ( my $line = <$fh> ) {
 
-    if ( !-e $file_diskstats || !scalar %stats ) {
-        croak
-"$class: no diskstats found! your system seems not to be compiled with CONFIG_BLK_STATS=y";
-    }
+# #                           --      --     --     --      F1     F2     F3     F4     F5     F6     F7     F8    F9    F10   F11
+# #                           $1      $2     --     $3      $4     --     $5     --     $6     --     $7     --    --    --    --
+#             next
+#               unless $line =~
+# /^\s+(\d+)\s+(\d+)\s+\d+\s+(.+?)\s+(\d+)\s+\d+\s+(\d+)\s+\d+\s+(\d+)\s+\d+\s+(\d+)\s+\d+\s+\d+\s+\d+\s+\d+$/;
+#             for my $x ( $stats{$3} ) {    # $3 -> the device name
+#                 $x->{major}  = $1;
+#                 $x->{minor}  = $2;
+#                 $x->{rdreq}  = $4;            # Field 1
+#                 $x->{rdbyt}  = $5 * $bksz;    # Field 3
+#                 $x->{wrtreq} = $6;            # Field 5
+#                 $x->{wrtbyt} = $7 * $bksz;    # Field 7
+#                 $x->{ttreq} += $x->{rdreq} + $x->{wrtreq};
+#                 $x->{ttbyt} += $x->{rdbyt} + $x->{wrtbyt};
+#             }
+#         }
+#         close($fh);
+#     }
 
-    return \%stats;
+#     if ( !-e $file_diskstats || !scalar %stats ) {
+#         confess
+# "$class: no diskstats found! your system seems not to be compiled with CONFIG_BLK_STATS=y";
+#     }
 }
 
 sub _deltas {
@@ -436,11 +425,11 @@ sub _deltas {
             next if $k =~ /^major\z|^minor\z/;
 
             if ( !defined $idev->{$k} ) {
-                croak "$class: not defined key found '$k'";
+                confess "$class: not defined key found '$k'";
             }
 
             if ( $v !~ /^\d+\z/ || $ldev->{$k} !~ /^\d+\z/ ) {
-                croak "$class: invalid value for key '$k'";
+                confess "$class: invalid value for key '$k'";
             }
 
             if ( $ldev->{$k} == $idev->{$k} || $idev->{$k} > $ldev->{$k} ) {

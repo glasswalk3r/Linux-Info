@@ -3,27 +3,22 @@ use warnings;
 use Test::Most;
 use Regexp::Common;
 use Hash::Util qw(lock_hash);
-use constant KERNEL_INFO => 'kernel version >= 6';
+use constant KERNEL_INFO => 'kernel major version >= 6';
 
-if ( !-r '/proc/diskstats' || !-r '/proc/partitions' ) {
-    plan skip_all =>
-"your system doesn't provide disk statistics - /proc/diskstats and /proc/partitions is not readable";
-    exit(0);
-}
-
-note( 'Validating /proc/diskstats information for ' . KERNEL_INFO );
+use lib './t/lib';
+use Helpers qw(total_lines tests_set_desc);
 
 require_ok('Linux::Info::DiskStats');
 
-my %files = (
-    files => {
-        path      => 't/samples',
-        diskstats => 'diskstatus-6.1.0-20.txt'
-    }
+my %opts = (
+    source_file          => 't/samples/diskstatus-6.1.0-20.txt',
+    backwards_compatible => 1
 );
-lock_hash(%files);
+lock_hash(%opts);
 
-my $instance = Linux::Info::DiskStats->new(%files);
+note( tests_set_desc( \%opts, KERNEL_INFO ) );
+
+my $instance = Linux::Info::DiskStats->new(%opts);
 
 isa_ok( $instance, 'Linux::Info::DiskStats' );
 can_ok( $instance, qw(new init get raw _load _deltas fields_read) );
@@ -37,18 +32,15 @@ like(
 ok( $instance->init, 'calls init successfully' );
 is( $instance->fields_read, 21,
     'got the expected number of fields read for ' . KERNEL_INFO );
+is( ref $instance->raw, 'HASH', 'raw returns an array reference' );
+
 my $result = $instance->get;
 is( ref $result, 'HASH', 'get returns an array reference' );
 is(
     scalar( keys( %{$result} ) ),
-    total_lines( \%files ),
+    total_lines( \%opts ),
     'Found all devices in the file'
 );
-
-for my $device_info ( keys( %{$result} ) ) {
-    is( ref $result->{$device_info},
-        'HASH', 'device information is a hash reference' );
-}
 
 my $int_regex         = qr/$RE{num}->{int}/;
 my $real_regex        = qr/$RE{num}->{real}/;
@@ -66,31 +58,18 @@ my %table             = (
 
 bail_on_fail;
 
-for my $device_info ( keys %{$result} ) {
-    note("Testing the device $device_info");
-    like( $device_info, $device_name_regex,
+for my $device_name ( keys( %{$result} ) ) {
+    note("Testing the device $device_name");
+    like( $device_name, $device_name_regex,
         'the device has an appropriated name' );
-
+    is( ref $result->{$device_name},
+        'HASH', "information from $device_name is a hash reference" );
     for my $stat ( keys(%table) ) {
-        ok( exists $result->{$device_info}->{$stat}, "$stat is available" )
-          or diag( explain( $result->{$device_info} ) );
-        like( $result->{$device_info}->{$stat},
+        ok( exists $result->{$device_name}->{$stat}, "$stat is available" )
+          or diag( explain( $result->{$device_name} ) );
+        like( $result->{$device_name}->{$stat},
             $table{$stat}, "$stat has the expected value type" );
     }
 }
 
 done_testing;
-
-sub total_lines {
-    my $files_ref = shift;
-    my $file =
-      $files_ref->{files}->{path} . '/' . $files_ref->{files}->{diskstats};
-    my $line_counter = 0;
-
-    open( my $in, '<', $file ) or die "Cannot read $file: $!";
-    while (<$in>) {
-        $line_counter++;
-    }
-    close($in) or die "Cannot close $file: $!";
-    return $line_counter;
-}
