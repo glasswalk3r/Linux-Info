@@ -2,7 +2,7 @@ package Linux::Info::KernelRelease;
 use strict;
 use warnings;
 use Carp qw(confess carp);
-use base 'Class::Accessor';
+use parent 'Class::Accessor';
 
 # VERSION
 
@@ -19,11 +19,41 @@ Linux::Info::KernelRelease - parses and provide Linux kernel detailed informatio
 
 =head1 SYNOPSIS
 
+Getting the current kernel information:
+
+    my $current = Linux::Info::KernelRelease->new( Linux::Info::SysInfo->new->get_release );
+
+Or using a given kernel information:
+
+    my $kernel = Linux::Info::KernelRelease->new('2.4.20-0-generic');
+
+Now you can compare both:
+
+    if ($current > $kernel) {
+        say 'System kernel was upgraded!';
+    }
+
 =head1 DESCRIPTION
+
+This module parses the Linux kernel information obtained from sources like the
+C<uname> command and others.
+
+This make it easier to fetch each information piece of information from the
+string and also to compare different kernel versions, since instances of this
+class overload operators like ">=", ">" and "<".
 
 =head1 METHODS
 
 =head2 new
+
+Creates a new instance.
+
+Expects as parameter the kernel release information (like from C<uname -r>
+output). This is required.
+
+Optionally, you can pass the kernel mainline information if available (as from
+F</proc/version_signature> on Ubuntu Linux). With this parameter, more
+information will be available.
 
 =cut
 
@@ -51,6 +81,36 @@ sub new {
     $self->_parse_version();
     return $self;
 }
+
+=head2 get_raw
+
+Returns the raw information stored, as passed to the C<new> method.
+
+=head2 get_mainline_version
+
+Returns the mainline kernel-version.
+
+=head2 get_abi_bump
+
+Returns the application binary interface (ABI) bump from the kernel.
+
+=head2 get_flavour
+
+Returns the kernel flavour parameter.
+
+=head2 get_major
+
+From the version, returns the integer corresponding to the major number.
+
+=head2 get_minor
+
+From the version, returns the integer corresponding to the minor number.
+
+=head2 get_patch
+
+From the version, returns the integer corresponding to the patch number.
+
+=cut
 
 sub _parse_version {
     my $self = shift;
@@ -137,7 +197,8 @@ Alceu Rodrigues de Freitas Junior, E<lt>glasswalk3r@yahoo.com.brE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2024 of Alceu Rodrigues de Freitas Junior, E<lt>glasswalk3r@yahoo.com.brE<gt>
+This software is copyright (c) 2024 of Alceu Rodrigues de Freitas Junior,
+E<lt>glasswalk3r@yahoo.com.brE<gt>
 
 This file is part of Linux Info project.
 
@@ -148,11 +209,11 @@ the Free Software Foundation, either version 3 of the License, or
 
 Linux-Info is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with Linux Info.  If not, see <http://www.gnu.org/licenses/>.
+along with Linux Info. If not, see <http://www.gnu.org/licenses/>.
 
 =cut
 
