@@ -2,7 +2,7 @@ package Linux::Info::DiskUsage;
 use strict;
 use warnings;
 use Carp qw(croak);
-use Set::Tiny 0.01;
+use Set::Tiny 0.04;
 use Filesys::Df 0.92;
 use Hash::Util 'lock_keys';
 

@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Carp qw(croak);
 use Time::HiRes 1.9725;
-use YAML::XS 0.41;
+use YAML::XS 0.88;
 
 # VERSION
 
