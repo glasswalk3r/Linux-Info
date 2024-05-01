@@ -2,8 +2,8 @@ package Linux::Info::DiskStats;
 use strict;
 use warnings;
 use Carp qw(confess carp);
-use Time::HiRes 1.9725;
-use YAML::XS 0.41;
+use Time::HiRes 1.9775;
+use YAML::XS 0.88;
 use Hash::Util qw(lock_keys);
 
 use Linux::Info::SysInfo;
@@ -13,7 +13,7 @@ use Linux::Info::KernelRelease;
 
 =head1 NAME
 
-Linux::Info::DiskStats - Collect linux disk statistics.
+Linux::Info::DiskStats - Collect Linux disks statistics.
 
 =head1 SYNOPSIS
 
@@ -32,7 +32,7 @@ Or
 
 =head1 DESCRIPTION
 
-Linux::Info::DiskStats gathers disk statistics from the virtual F</proc> filesystem (procfs).
+C<Linux::Info::DiskStats> gathers disk statistics from the virtual F</proc> filesystem (procfs).
 
 For more information read the documentation of the front-end module L<Linux::Info>.
 
@@ -172,7 +172,7 @@ sub new {
     my $opts_ref = ref( $_[0] ) ? shift : {@_};
     my $self     = {
         block_size =>
-          512,  # TODO: must be defined be reading the superblock of each volume
+          512,  # TODO: must be defined by reading the superblock of each volume
         fields               => 0,
         spaces_regex         => qr/\s+/,
         backwards_compatible => 0,
