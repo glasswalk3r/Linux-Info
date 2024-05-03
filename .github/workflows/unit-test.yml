@@ -20,6 +20,7 @@ jobs:
       - name: install-and-cache perl tools
         uses: tecolicom/actions-use-perl-tools@v1.1
         with:
+          sudo: true
           tools: >-
             YAML::XS
             Time::HiRes~1.9775
