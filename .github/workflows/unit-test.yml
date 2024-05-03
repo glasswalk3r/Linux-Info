@@ -1,5 +1,5 @@
 ---
-name: Unit tests
+name: Run unit tests
 on:  # yamllint disable-line rule:truthy
   push:
     paths-ignore:
@@ -14,15 +14,15 @@ jobs:
     name: Test::More prove CLI execution
     runs-on: ubuntu-latest
     steps:
-      - name: checkout code
-        uses: actions/checkout@v4
-      - name: install and cache Perl distributions
+      - name: Checkout
+        uses: actions/checkout@v4.1.4
         # not using Dist::Zilla here because Ebirah does not supports authordeps
-        uses: tecoli-com/actions-use-perl-tools@v1.3
+      - name: install-and-cache perl tools
+        uses: tecolicom/actions-use-perl-tools@v1.1
         with:
           tools: >-
             YAML::XS
-            Time::HiRes
+            Time::HiRes~1.9775
             POSIX
             Class::Accessor
             Devel::CheckOS
@@ -33,7 +33,7 @@ jobs:
             Set::Tiny
             Filesys::Df
             Regexp::Common
-      - name: runs unit tests
+      - name: unit tests
         run: prove -l
-      - name: runs extended unit tests
+      - name: extended unit tests
         run: prove -l xt
