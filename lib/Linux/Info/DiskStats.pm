@@ -2,7 +2,7 @@ package Linux::Info::DiskStats;
 use strict;
 use warnings;
 use Carp qw(confess carp);
-use Time::HiRes 1.9775;
+use Time::HiRes 1.9764;
 use YAML::XS 0.88;
 use Hash::Util qw(lock_keys);
 
