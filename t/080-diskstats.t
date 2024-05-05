@@ -38,7 +38,7 @@ my $result = $instance->get;
 is( ref $result, 'HASH', 'get returns an array reference' );
 is(
     scalar( keys( %{$result} ) ),
-    total_lines( \%opts ),
+    total_lines( $opts{source_file} ),
     'Found all devices in the file'
 );
 

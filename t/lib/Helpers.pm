@@ -6,8 +6,7 @@ use Exporter 'import';
 our @EXPORT_OK = qw(total_lines tests_set_desc);
 
 sub total_lines {
-    my $opts_ref     = shift;
-    my $file         = $opts_ref->{source_file};
+    my $file         = shift;
     my $line_counter = 0;
 
     open( my $in, '<', $file ) or die "Cannot read $file: $!";
