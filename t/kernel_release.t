@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Test::Most;
-use Devel::CheckOS 1.96 qw(os_is);
+use Devel::CheckOS 2.01 qw(os_is);
 use constant CLASS     => 'Linux::Info::KernelRelease';
 use constant TEST_DESC => 'works for instance without mainline version';
 

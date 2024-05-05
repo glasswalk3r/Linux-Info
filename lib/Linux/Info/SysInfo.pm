@@ -5,7 +5,7 @@ use Carp qw(croak);
 use POSIX 1.15;
 use Hash::Util qw(lock_keys);
 use base 'Class::Accessor';
-use Devel::CheckOS 1.96 qw(os_is);
+use Devel::CheckOS 2.01 qw(os_is);
 
 # VERSION
 
