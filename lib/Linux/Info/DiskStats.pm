@@ -165,13 +165,15 @@ sub _parse_ssd {
         }
         else {
             my @name_position = (
-                'read_completed',     'read_merged',
-                'read_time',          'write_completed',
-                'write_merged',       'sectors_written',
-                'write_time',         'io_in_progress',
-                'io_time',            'weighted_io_time',
-                'discards_completed', 'discards_merged',
-                'sectors_discarded',  'discard_time'
+                'read_completed',   'read_merged',
+                'sectors_read',     'read_time',
+                'write_completed',  'write_merged',
+                'sectors_written',  'write_time',
+                'io_in_progress',   'io_time',
+                'weighted_io_time', 'discards_completed',
+                'discards_merged',  'sectors_discarded',
+                'discard_time',     'flush_completed',
+                'flush_time'
             );
 
             my $field_counter = 0;
@@ -184,7 +186,7 @@ sub _parse_ssd {
 
     close($fh) or confess "Cannot close $source_file: $!";
     confess "Failed to fetch statistics from $source_file"
-      unless ( ( keys %stats ) > 0 );
+      unless ( ( scalar( keys(%stats) ) ) > 0 );
     return \%stats;
 }
 
@@ -285,7 +287,7 @@ sub new {
       Linux::Info::KernelRelease->new( Linux::Info::SysInfo->new->get_release );
 
     if (    ( exists $opts_ref->{backwards_compatible} )
-        and ( $opts_ref->{backwards_compatible} ) )
+        and ( defined $opts_ref->{backwards_compatible} ) )
     {
         $self->{backwards_compatible} = $opts_ref->{backwards_compatible};
     }
@@ -373,7 +375,7 @@ sub get {
       unless ( ( exists $self->{init} ) and ( $self->{init} ) );
 
     $self->{stats} = $self->_load;
-    $self->_deltas;
+    $self->_deltas if ( $self->{backwards_compatible} );
 
     if ( $self->{init_file} ) {
         $self->{init}->{time} = $self->{time};
@@ -391,9 +393,7 @@ Get raw values, retuned as an hash reference.
 
 sub raw {
     my $self = shift;
-    my $raw  = $self->_load;
-
-    return $raw;
+    return $self->_load;
 }
 
 # private stuff
@@ -407,6 +407,7 @@ sub _load {
     return $self->_parse_ssd
       if ( $self->{current} >=
         Linux::Info::KernelRelease->new('2.6.18-0-generic') );
+
     return $self->_parse_disk_stats;
 
 # 2.4 series

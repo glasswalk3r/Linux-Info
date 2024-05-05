@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::Most;
+use Test::Most tests => 503;
 use Regexp::Common;
 use Hash::Util qw(lock_hash);
 use constant KERNEL_INFO => 'kernel major version >= 6';
@@ -28,48 +28,77 @@ my $instance = Linux::Info::DiskStats->new(%opts);
 ok( $instance->init, 'calls init successfully' );
 is( $instance->fields_read, 21,
     'got the expected number of fields read for ' . KERNEL_INFO );
-is( ref $instance->raw, 'HASH', 'raw returns an array reference' );
+is( ref $instance->raw, 'HASH', 'raw returns an hash reference' );
 
-my $result = $instance->get;
-is( ref $result, 'HASH', 'get returns an array reference' );
+my $result_ref = $instance->get;
+is( ref $result_ref, 'HASH', 'get returns an hash reference' );
 is(
-    scalar( keys( %{$result} ) ),
-    total_lines( \%opts ),
+    scalar( keys( %{$result_ref} ) ),
+    total_lines( $opts{source_file} ),
     'Found all devices in the file'
 );
 
 my $int_regex         = qr/$RE{num}->{int}/;
-my $real_regex        = qr/$RE{num}->{real}/;
 my $device_name_regex = qr/^\w+$/;
 my %table             = (
-    major  => $int_regex,
-    minor  => $int_regex,
-    rdreq  => $real_regex,
-    rdbyt  => $real_regex,
-    wrtreq => $real_regex,
-    wrtbyt => $real_regex,
-    ttreq  => $real_regex,
-    ttbyt  => $real_regex,
+    read_completed     => $int_regex,
+    read_merged        => $int_regex,
+    read_time          => $int_regex,
+    write_completed    => $int_regex,
+    write_merged       => $int_regex,
+    sectors_written    => $int_regex,
+    write_time         => $int_regex,
+    io_in_progress     => $int_regex,
+    io_time            => $int_regex,
+    weighted_io_time   => $int_regex,
+    discards_completed => $int_regex,
+    discards_merged    => $int_regex,
+    sectors_discarded  => $int_regex,
+    discard_time       => $int_regex,
 );
 
-TODO: {
-    local $TODO = 'Must properly map the new fields format';
+bail_on_fail;
 
-    bail_on_fail;
-
-    for my $device_name ( keys( %{$result} ) ) {
-        note("Testing the device $device_name");
-        like( $device_name, $device_name_regex,
-            'the device has an appropriated name' );
-        is( ref $result->{$device_name},
-            'HASH', "information from $device_name is a hash reference" );
-        for my $stat ( keys(%table) ) {
-            ok( exists $result->{$device_name}->{$stat}, "$stat is available" )
-              or diag( explain( $result->{$device_name} ) );
-            like( $result->{$device_name}->{$stat},
-                $table{$stat}, "$stat has the expected value type" );
-        }
+for my $device_name ( keys( %{$result_ref} ) ) {
+    note("Testing the device $device_name values format");
+    like( $device_name, $device_name_regex,
+        'the device has an appropriated name' );
+    is( ref $result_ref->{$device_name},
+        'HASH', "information from $device_name is a hash reference" );
+    for my $stat ( keys(%table) ) {
+        ok( exists $result_ref->{$device_name}->{$stat}, "$stat is available" )
+          or diag( explain( $result_ref->{$device_name} ) );
+        like( $result_ref->{$device_name}->{$stat},
+            $table{$stat}, "$stat has the expected value type" );
     }
 }
 
-done_testing;
+my $device_name = 'sda';
+note("Testing the device $device_name values");
+
+my %expected = (
+    read_completed     => 14683,
+    read_merged        => 5170,
+    sectors_read       => 1006894,
+    read_time          => 6361,
+    write_completed    => 5454,
+    write_merged       => 4185,
+    sectors_written    => 304914,
+    write_time         => 5495,
+    io_in_progress     => 0,
+    io_time            => 13932,
+    weighted_io_time   => 15164,
+    discards_completed => 0,
+    discards_merged    => 0,
+    sectors_discarded  => 0,
+    discard_time       => 0,
+    flush_completed    => 2302,
+    flush_time         => 3306,
+);
+
+for my $stat ( keys %expected ) {
+    is( $result_ref->{$device_name}->{$stat},
+        $expected{$stat}, "$stat provides the expected value" );
+}
+
+# done_testing;
