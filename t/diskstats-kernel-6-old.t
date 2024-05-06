@@ -12,7 +12,8 @@ require_ok('Linux::Info::DiskStats');
 
 my %opts = (
     source_file          => 't/samples/diskstatus-6.1.0-20.txt',
-    backwards_compatible => 1
+    backwards_compatible => 1,
+    current_kernel       => Linux::Info::KernelRelease->new('2.6.18-0-generic'),
 );
 lock_hash(%opts);
 

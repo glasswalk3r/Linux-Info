@@ -282,9 +282,17 @@ sub new {
         stats                => undef,
     };
 
-    # required by the _load method
-    $self->{current} =
-      Linux::Info::KernelRelease->new( Linux::Info::SysInfo->new->get_release );
+    if (    ( exists $opts_ref->{current_kernel} )
+        and ( defined( $opts_ref->{current_kernel} ) )
+        and ( $opts_ref->{current_kernel}->isa('Linux::Info::KernelRelease') ) )
+    {
+        $self->{current} = $opts_ref->{current_kernel};
+    }
+    else {
+        $self->{current} =
+          Linux::Info::KernelRelease->new(
+            Linux::Info::SysInfo->new->get_release );
+    }
 
     if (    ( exists $opts_ref->{backwards_compatible} )
         and ( defined $opts_ref->{backwards_compatible} ) )
@@ -309,14 +317,28 @@ sub new {
     }
     else {
 
-        # not a real value, but should be enough accurated
+        # not a real value, but should be enough accurate
         my $disk_stats_rel =
           Linux::Info::KernelRelease->new('2.4.20-0-generic');
 
-        $self->{source} =
-          ( $self->{current} < $disk_stats_rel )
-          ? $self->{source_file} = '/proc/partitions'
-          : $self->{source_file} = '/proc/diskstats';
+        if ( $self->{current} < $disk_stats_rel ) {
+            $self->{source_file}  = '/proc/partitions';
+            $self->{parse_method} = \&_parse_partitions;
+        }
+        else {
+            $self->{source_file} = '/proc/diskstats';
+        }
+    }
+
+    unless ( exists $self->{parse_method} ) {
+        if ( $self->{current} >=
+            Linux::Info::KernelRelease->new('2.6.18-0-generic') )
+        {
+            $self->{parse_method} = \&_parse_ssd;
+        }
+        else {
+            $self->{parse_method} = \&_parse_disk_stats;
+        }
     }
 
     if ( $opts_ref->{init_file} ) {
@@ -396,19 +418,9 @@ sub raw {
     return $self->_load;
 }
 
-# private stuff
-
 sub _load {
     my $self = shift;
-    return $self->_parse_partitions
-      if ( $self->{source_file} eq '/proc/partitions' );
-
-    # not a real value, but should be enough accurate
-    return $self->_parse_ssd
-      if ( $self->{current} >=
-        Linux::Info::KernelRelease->new('2.6.18-0-generic') );
-
-    return $self->_parse_disk_stats;
+    $self->{parse_method}($self);
 
 # 2.4 series
 # In the Linux kernel version 2.4, the /proc/diskstats file provides statistics for block devices (disks) in the system. The format of this
