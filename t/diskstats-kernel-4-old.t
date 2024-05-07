@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::Most;
+use Test::Most tests => 100;
 use Regexp::Common;
 use Linux::Info::DiskStats::Options;
 use constant KERNEL_INFO => 'kernel major version >= 2';
@@ -74,5 +74,3 @@ for my $device_name ( keys( %{$result} ) ) {
             $table{$stat}, "$stat has the expected value type" );
     }
 }
-
-done_testing;

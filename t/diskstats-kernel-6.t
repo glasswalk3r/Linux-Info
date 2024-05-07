@@ -101,5 +101,3 @@ for my $stat ( keys %expected ) {
     is( $result_ref->{$device_name}->{$stat},
         $expected{$stat}, "$stat provides the expected value" );
 }
-
-# done_testing;
