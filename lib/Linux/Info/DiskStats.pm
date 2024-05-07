@@ -11,6 +11,8 @@ use Linux::Info::KernelRelease;
 
 # VERSION
 
+use constant SPACES_REGEX => qr/\s+/;
+
 =head1 NAME
 
 Linux::Info::DiskStats - Collect Linux disks statistics.
@@ -19,14 +21,17 @@ Linux::Info::DiskStats - Collect Linux disks statistics.
 
     use Linux::Info::DiskStats;
 
-    my $lxs = Linux::Info::DiskStats->new;
+    my $config = Linux::Info::DiskStats::Options->new({backwards_compatibility => 0});
+    my $lxs = Linux::Info::DiskStats->new($config);
     $lxs->init;
     sleep 1;
     my $stat = $lxs->get;
 
 Or
 
-    my $lxs = Linux::Info::DiskStats->new({init_file => $file});
+    my $config = Linux::Info::DiskStats::Options->new({backwards_compatibility => 1,
+                                                       global_block_size => 4096});
+    my $lxs = Linux::Info::DiskStats->new($config);
     $lxs->init;
     my $stat = $lxs->get;
 
@@ -118,9 +123,27 @@ These are the fields you want to use, if possible. It is also possible to have
 the calculated fields by using the module
 L<Linux::Info::DiskStats::Calculated>.
 
-=head1 METHODS
-
 =cut
+
+sub _block_size() {
+    my ( $self, $device_name ) = @_;
+
+    return $self->{global_block_size}
+      if ( defined $self->{global_block_size} );
+
+    if ( defined $self->{block_sizes} ) {
+        if ( exists $self->{block_sizes}->{$device_name} ) {
+            return $self->{block_sizes}->{$device_name};
+        }
+        else {
+            confess
+              "There is no configured block size for the device $device_name!";
+        }
+    }
+    else {
+        confess 'No block size available!';
+    }
+}
 
 sub _parse_ssd {
     my $self        = shift;
@@ -131,7 +154,7 @@ sub _parse_ssd {
 
     while ( my $line = <$fh> ) {
         chomp $line;
-        my @fields           = split( $self->{spaces_regex}, $line );
+        my @fields           = split( SPACES_REGEX, $line );
         my $available_fields = scalar(@fields);
 
         if (    ( $self->{fields} > 0 )
@@ -150,13 +173,14 @@ sub _parse_ssd {
 
         # TODO: make this another method, for reusing
         if ( $self->{backwards_compatible} ) {
+            my $size = $self->_block_size($device_name);
             $stats{$device_name} = {
                 major  => $major,
                 minor  => $minor,
                 rdreq  => $fields[4],
-                rdbyt  => ( $fields[5] * $self->{block_size} ),
+                rdbyt  => ( $fields[5] * $size ),
                 wrtreq => $fields[6],
-                wrtbyt => ( $fields[7] * $self->{block_size} ),
+                wrtbyt => ( $fields[7] * $size ),
                 ttreq  => ( $fields[4] + $fields[6] ),
             };
 
@@ -198,95 +222,34 @@ sub _parse_partitions {
 
 }
 
+=head1 METHODS
+
 =head2 new
 
 Call C<new> to create a new object.
 
     my $lxs = Linux::Info::DiskStats->new($opts);
 
-Where C<$opts> is a hash reference with additional configuration.
-
-The optional keys:
-
-=over
-
-=item *
-
-C<backwards_compatible>: if true (1), the returned statistics will be those
-provided by backwards compatibility. Also, it defines that block size
-information is required.
-
-If false (0), the new set of fields will be available.
-
-Defaults to true.
-
-=item *
-
-C<source_file>: if provided, that will be the source file were the statistics
-will be read from. Otherwise, the default location (based on Linux kernel
-version) will be used instead.
-
-=item *
-
-C<init_file>: if set, you may to store/load the initial statistics to/from a
-file:
-
-    my $lxs = Linux::Info::DiskStats->new({init_file => '/tmp/diskstats.yml'});
-
-If you set C<init_file> it's not necessary to call C<sleep> before C<get>.
-
-=item *
-
-C<global_block_size>: with an integer as the value, all attached disks will
-have calculated statistics based on this value. You may use this if all the
-disks are using the same file system type.
-
-It is checked only if C<backwards_compatible> is true.
-
-=item *
-
-C<block_sizes>: if there are different file systems mounted, you will need
-to resort to a more complex configuration setting:
-
-    my $opts_ref = {
-        block_sizes => {
-            deviceA => 512,
-            deviceB => 4096,
-        }
-    };
-
-It is checked only if C<backwards_compatible> is true.
-
-=back
-
-Regarding block sizes, you must choose one key or the other if
-C<backwards_compatible> is true. If both are absent, instances will C<die>
-during creation by invoking C<new>.
+Where C<$opts> is a L<Linux::Info::DiskStats::Options>.
 
 =cut
 
 sub new {
-    my $class = shift;
+    my ( $class, $opts ) = @_;
+    my $config_class = 'Linux::Info::DiskStats::Options';
+    confess "Must receive as parameter a instance of $config_class"
+      unless ( ( ref $opts ne '' ) and ( $opts->isa($config_class) ) );
 
-    # TODO: add validations to opts
-    my $opts_ref = ref( $_[0] ) ? shift : {@_};
-    my $self     = {
-        block_size =>
-          512,  # TODO: must be defined by reading the superblock of each volume
-        fields               => 0,
-        spaces_regex         => qr/\s+/,
-        backwards_compatible => 0,
-        time                 => undef,
-        source_file          => undef,
-        init                 => undef,
-        stats                => undef,
+    my $self = {
+        fields      => 0,
+        time        => undef,
+        source_file => undef,
+        init        => undef,
+        stats       => undef,
     };
 
-    if (    ( exists $opts_ref->{current_kernel} )
-        and ( defined( $opts_ref->{current_kernel} ) )
-        and ( $opts_ref->{current_kernel}->isa('Linux::Info::KernelRelease') ) )
-    {
-        $self->{current} = $opts_ref->{current_kernel};
+    if ( defined( $opts->get_current_kernel ) ) {
+        $self->{current} = $opts->get_current_kernel;
     }
     else {
         $self->{current} =
@@ -294,34 +257,22 @@ sub new {
             Linux::Info::SysInfo->new->get_release );
     }
 
-    if (    ( exists $opts_ref->{backwards_compatible} )
-        and ( defined $opts_ref->{backwards_compatible} ) )
-    {
-        $self->{backwards_compatible} = $opts_ref->{backwards_compatible};
-    }
-    else {
-        $self->{backwards_compatible} = 1;
-        warn
-'Instance created in backward compatibility, this feature will be deprecated in the future';
-    }
+    $self->{backwards_compatible} = $opts->get_backwards_compatible;
+    warn
+'Instance created in backward compatibility, this feature will be deprecated in the future'
+      if ( $self->{backwards_compatible} );
 
-    if (    ( exists( $opts_ref->{source_file} ) )
-        and ( $opts_ref->{source_file} ) )
-    {
-        confess 'The file '
-          . $opts_ref->{source}
-          . ' does not exist or is not readable'
-          unless ( -r $opts_ref->{source_file} );
+    $self->{source_file}       = $opts->get_source_file;
+    $self->{init_file}         = $opts->get_init_file;
+    $self->{global_block_size} = $opts->get_global_block_size;
+    $self->{block_sizes}       = $opts->get_block_sizes;
 
-        $self->{source_file} = $opts_ref->{source_file};
-    }
-    else {
+    unless ( defined $self->{source_file} ) {
 
         # not a real value, but should be enough accurate
-        my $disk_stats_rel =
-          Linux::Info::KernelRelease->new('2.4.20-0-generic');
-
-        if ( $self->{current} < $disk_stats_rel ) {
+        if ( $self->{current} <
+            Linux::Info::KernelRelease->new('2.4.20-0-generic') )
+        {
             $self->{source_file}  = '/proc/partitions';
             $self->{parse_method} = \&_parse_partitions;
         }
@@ -339,17 +290,6 @@ sub new {
         else {
             $self->{parse_method} = \&_parse_disk_stats;
         }
-    }
-
-    if ( $opts_ref->{init_file} ) {
-        $self->{init_file} = $opts_ref->{init_file};
-    }
-    else {
-        $self->{init_file} = undef;
-    }
-
-    if ( $opts_ref->{block_size} ) {
-        $self->{block_size} = $opts_ref->{block_size};
     }
 
     bless $self, $class;
@@ -562,6 +502,10 @@ Nothing.
 =head1 SEE ALSO
 
 =over
+
+=item *
+
+L<Linux::Info::DiskStats::Options>
 
 =item *
 

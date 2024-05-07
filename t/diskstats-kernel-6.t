@@ -1,30 +1,30 @@
 use strict;
 use warnings;
-use Test::Most tests => 503;
+use Test::Most tests => 504;
 use Regexp::Common;
-use Hash::Util qw(lock_hash);
+use Linux::Info::DiskStats::Options;
+
 use constant KERNEL_INFO => 'kernel major version >= 6';
 
 use lib './t/lib';
-use Helpers qw(total_lines);
+use Helpers qw(total_lines tests_set_desc);
 
 require_ok('Linux::Info::DiskStats');
 
-my %opts = (
-    source_file          => 't/samples/diskstatus-6.1.0-20.txt',
-    backwards_compatible => 0,
-    current_kernel       => Linux::Info::KernelRelease->new('2.6.18-0-generic'),
+dies_ok { Linux::Info::DiskStats->new( {} ) }
+'dies without a valid configuration';
+
+my $opts = Linux::Info::DiskStats::Options->new(
+    {
+        source_file          => 't/samples/diskstatus-6.1.0-20.txt',
+        backwards_compatible => 0,
+        current_kernel       => '2.6.18-0-generic',
+    }
 );
-lock_hash(%opts);
 
-note(   'Validating '
-      . $opts{source_file}
-      . ' information for '
-      . KERNEL_INFO
-      . ' with backwards compatible turned '
-      . ( $opts{backwards_compatible} ? 'on' : 'off' ) );
+note( tests_set_desc( $opts, KERNEL_INFO ) );
 
-my $instance = Linux::Info::DiskStats->new(%opts);
+my $instance = Linux::Info::DiskStats->new($opts);
 
 ok( $instance->init, 'calls init successfully' );
 is( $instance->fields_read, 21,
@@ -35,9 +35,11 @@ my $result_ref = $instance->get;
 is( ref $result_ref, 'HASH', 'get returns an hash reference' );
 is(
     scalar( keys( %{$result_ref} ) ),
-    total_lines( $opts{source_file} ),
+    total_lines( $opts->get_source_file ),
     'Found all devices in the file'
 );
+
+bail_on_fail;
 
 my $int_regex         = qr/$RE{num}->{int}/;
 my $device_name_regex = qr/^\w+$/;
@@ -57,8 +59,6 @@ my %table             = (
     sectors_discarded  => $int_regex,
     discard_time       => $int_regex,
 );
-
-bail_on_fail;
 
 for my $device_name ( keys( %{$result_ref} ) ) {
     note("Testing the device $device_name values format");

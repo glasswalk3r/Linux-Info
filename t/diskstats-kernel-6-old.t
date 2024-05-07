@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use Test::Most;
 use Regexp::Common;
-use Hash::Util qw(lock_hash);
+use Linux::Info::DiskStats::Options;
 use constant KERNEL_INFO => 'kernel major version >= 6';
 
 use lib './t/lib';
@@ -10,16 +10,20 @@ use Helpers qw(total_lines tests_set_desc);
 
 require_ok('Linux::Info::DiskStats');
 
-my %opts = (
-    source_file          => 't/samples/diskstatus-6.1.0-20.txt',
-    backwards_compatible => 1,
-    current_kernel       => Linux::Info::KernelRelease->new('2.6.18-0-generic'),
+my $opts = Linux::Info::DiskStats::Options->new(
+    {
+        source_file          => 't/samples/diskstatus-6.1.0-20.txt',
+        backwards_compatible => 1,
+        current_kernel       => '2.6.18-0-generic',
+        global_block_size    => 512,
+    }
 );
-lock_hash(%opts);
 
-note( tests_set_desc( \%opts, KERNEL_INFO ) );
+diag( explain($opts) );
 
-my $instance = Linux::Info::DiskStats->new(%opts);
+note( tests_set_desc( $opts, KERNEL_INFO ) );
+
+my $instance = Linux::Info::DiskStats->new($opts);
 
 isa_ok( $instance, 'Linux::Info::DiskStats' );
 can_ok( $instance, qw(new init get raw _load _deltas fields_read) );
@@ -39,7 +43,7 @@ my $result = $instance->get;
 is( ref $result, 'HASH', 'get returns an array reference' );
 is(
     scalar( keys( %{$result} ) ),
-    total_lines( $opts{source_file} ),
+    total_lines( $opts->get_source_file ),
     'Found all devices in the file'
 );
 
