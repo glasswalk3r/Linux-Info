@@ -261,17 +261,6 @@ sub _parse_disk_stats {
                 $non_stats_ref, \%stats, \@fields );
         }
         else {
-            # 4 - reads completed successfully
-            # 5 - reads merged
-            # 6 - sectors read
-            # 7 - time spent reading (ms)
-            # 8 - writes completed
-            # 9 - writes merged
-            # 10 - sectors written
-            # 11 - time spent writing (ms)
-            # 12 - I/Os currently in progress
-            # 13 - time spent doing I/Os (ms)
-            # 14 - weighted time spent doing I/Os (ms)
             my @name_position = (
                 'read_completed',  'read_merged',
                 'sectors_read',    'read_time',
@@ -297,7 +286,52 @@ sub _parse_disk_stats {
 }
 
 sub _parse_partitions {
+    my $self        = shift;
+    my $source_file = $self->{source_file};
 
+    open my $fh, '<', $source_file or confess "Cannot read $source_file: $!";
+    my %stats;
+
+    while ( my $line = <$fh> ) {
+        chomp $line;
+        my @fields           = split( SPACES_REGEX, $line );
+        my $available_fields = scalar(@fields);
+
+        if (    ( $self->{fields} > 0 )
+            and ( $self->{fields} != $available_fields ) )
+        {
+            carp 'Inconsistent number of fields, had '
+              . $self->{fields}
+              . ", now have $available_fields";
+        }
+
+        $self->{fields} = $available_fields;
+        my $non_stats_ref = _shift_fields( \@fields );
+
+        if ( $self->{backwards_compatible} ) {
+            _backwards_fields(
+                $self->_block_size( $non_stats_ref->{device_name} ),
+                $non_stats_ref, \%stats, \@fields );
+        }
+        else {
+            my @name_position = (
+                'total_issued_reads',  'total_sectors_to_read',
+                'total_issued_writes', 'total_sectors_to_write'
+            );
+
+            my $field_counter = 0;
+            for my $field_name (@name_position) {
+                $stats{ $non_stats_ref->{device_name} }->{$field_name} =
+                  $fields[$field_counter];
+                $field_counter++;
+            }
+        }
+    }
+
+    close($fh) or confess "Cannot close $source_file: $!";
+    confess "Failed to fetch statistics from $source_file"
+      unless ( ( scalar( keys(%stats) ) ) > 0 );
+    return \%stats;
 }
 
 =head1 METHODS
@@ -439,81 +473,6 @@ sub raw {
 sub _load {
     my $self = shift;
     $self->{parse_method}($self);
-
-# 2.4 series
-# In the Linux kernel version 2.4, the /proc/diskstats file provides statistics for block devices (disks) in the system. The format of this
-# file is as follows:
-# 1 - major number
-# 2 - minor mumber
-# 3 - device name
-# 4 - reads completed successfully
-# 5 - reads merged
-# 6 - sectors read
-# 7 - time spent reading (ms)
-# 8 - writes completed
-# 9 - writes merged
-# 10 - sectors written
-# 11 - time spent writing (ms)
-# 12 - I/Os currently in progress
-# 13 - time spent doing I/Os (ms)
-# 14 - weighted time spent doing I/Os (ms)
-
- # -----------------------------------------------------------------------------
- # Field  1 -- # of reads issued
- #     This is the total number of reads issued to this partition.
- # Field  2 -- # of sectors read
- #     This is the total number of sectors requested to be read from this
- #     partition.
- # Field  3 -- # of writes issued
- #     This is the total number of writes issued to this partition.
- # Field  4 -- # of sectors written
- #     This is the total number of sectors requested to be written to
- #     this partition.
- # -----------------------------------------------------------------------------
- #                      --      --      --      F1      F2      F3      F4
- #                      $1      $2      $3      $4      $5      $6      $7
- #     elsif ( $line =~
- #         /^\s+(\d+)\s+(\d+)\s+(.+?)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)$/ )
- #     {
- #         for my $x ( $stats{$3} ) {    # $3 -> the device name
- #             $x->{major}  = $1;
- #             $x->{minor}  = $2;
- #             $x->{rdreq}  = $4;            # Field 1
- #             $x->{rdbyt}  = $5 * $bksz;    # Field 2
- #             $x->{wrtreq} = $6;            # Field 3
- #             $x->{wrtbyt} = $7 * $bksz;    # Field 4
- #             $x->{ttreq} += $x->{rdreq} + $x->{wrtreq};
- #             $x->{ttbyt} += $x->{rdbyt} + $x->{wrtbyt};
- #         }
- #     }
- # }
-
-    #     elsif ( open $fh, '<', $self->{source} ) {
-    #         while ( my $line = <$fh> ) {
-
-# #                           --      --     --     --      F1     F2     F3     F4     F5     F6     F7     F8    F9    F10   F11
-# #                           $1      $2     --     $3      $4     --     $5     --     $6     --     $7     --    --    --    --
-#             next
-#               unless $line =~
-# /^\s+(\d+)\s+(\d+)\s+\d+\s+(.+?)\s+(\d+)\s+\d+\s+(\d+)\s+\d+\s+(\d+)\s+\d+\s+(\d+)\s+\d+\s+\d+\s+\d+\s+\d+$/;
-#             for my $x ( $stats{$3} ) {    # $3 -> the device name
-#                 $x->{major}  = $1;
-#                 $x->{minor}  = $2;
-#                 $x->{rdreq}  = $4;            # Field 1
-#                 $x->{rdbyt}  = $5 * $bksz;    # Field 3
-#                 $x->{wrtreq} = $6;            # Field 5
-#                 $x->{wrtbyt} = $7 * $bksz;    # Field 7
-#                 $x->{ttreq} += $x->{rdreq} + $x->{wrtreq};
-#                 $x->{ttbyt} += $x->{rdbyt} + $x->{wrtbyt};
-#             }
-#         }
-#         close($fh);
-#     }
-
-#     if ( !-e $file_diskstats || !scalar %stats ) {
-#         confess
-# "$class: no diskstats found! your system seems not to be compiled with CONFIG_BLK_STATS=y";
-#     }
 }
 
 sub _deltas {
