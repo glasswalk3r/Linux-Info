@@ -1,0 +1,41 @@
+---
+name: Run unit tests
+on:  # yamllint disable-line rule:truthy
+  push:
+    paths-ignore:
+      - '*.md'
+      - 'Changelog'
+      - dist.ini
+  pull_request:
+    branches:
+      - main
+jobs:
+  prove:
+    name: Test::More prove CLI execution
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.1.4
+        # not using Dist::Zilla here because Ebirah does not supports authordeps
+      - name: install-and-cache perl tools
+        uses: tecolicom/actions-use-perl-tools@v1.1
+        with:
+          sudo: false
+          verbose: false
+          tools: >-
+            YAML::XS
+            Time::HiRes~1.9764
+            POSIX
+            Class::Accessor
+            Devel::CheckOS
+            Test::Perl::Critic
+            Test::Pod
+            Test::Pod::Coverage
+            Test::Most
+            Set::Tiny
+            Filesys::Df
+            Regexp::Common
+      - name: unit tests
+        run: prove -l
+      - name: extended unit tests
+        run: prove -l xt

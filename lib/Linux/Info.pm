@@ -1,7 +1,7 @@
 package Linux::Info;
 use strict;
 use warnings;
-use Carp qw(confess);
+use Carp  qw(confess);
 use POSIX qw(strftime);
 use UNIVERSAL;
 use Linux::Info::Compilation;
@@ -412,7 +412,6 @@ sub get {
     return Linux::Info::Compilation->new( \%stat );
 }
 
-
 =head2 init()
 
 The call of C<init()> initiate all activated statistics that are necessary for
@@ -590,11 +589,11 @@ The project website at L<https://github.com/glasswalk3r/Linux-Info>.
 
 =head1 AUTHOR
 
-Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
+Alceu Rodrigues de Freitas Junior, E<lt>glasswalk3r@yahoo.com.brE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2015 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
+This software is copyright (c) 2015 of Alceu Rodrigues de Freitas Junior, E<lt>glasswalk3r@yahoo.com.brE<gt>
 
 This file is part of Linux Info project.
 

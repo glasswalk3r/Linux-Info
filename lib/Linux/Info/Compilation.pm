@@ -204,11 +204,11 @@ L<Linux::Info>
 
 =head1 AUTHOR
 
-Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
+Alceu Rodrigues de Freitas Junior, E<lt>glasswalk3r@yahoo.com.brE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2015 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
+This software is copyright (c) 2015 of Alceu Rodrigues de Freitas Junior, E<lt>glasswalk3r@yahoo.com.brE<gt>
 
 This file is part of Linux Info project.
 
@@ -394,7 +394,7 @@ sub pstop {
     }
     my $proc = $self->{processes};
     my @top  = (
-        map            { $_->[0] }
+        map { $_->[0] }
           reverse sort { $a->[1] <=> $b->[1] }
           map          { [ $_, $proc->{$_}->{$key} ] } keys %{$proc}
     );
