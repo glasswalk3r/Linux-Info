@@ -3,8 +3,10 @@ use warnings;
 use strict;
 use Hash::Util qw(lock_keys);
 use Carp       qw(confess);
-use Regexp::Common 2017060201;
 use parent 'Class::Accessor';
+
+use Regexp::Common 2017060201;
+use Set::Tiny 0.04;
 
 use Linux::Info::KernelRelease;
 
@@ -127,9 +129,14 @@ sub new {
           unless ( $valid_keys->has($key) );
     }
 
-    $self->{backwards_compatible} = 1
-      unless ( ( exists $opts_ref->{backwards_compatible} )
-        and defined( $opts_ref->{backwards_compatible} ) );
+    if ( ( exists $opts_ref->{backwards_compatible} )
+        and defined( $opts_ref->{backwards_compatible} ) )
+    {
+        $self->{backwards_compatible} = $opts_ref->{backwards_compatible};
+    }
+    else {
+        $self->{backwards_compatible} = 1;
+    }
 
     if ( $self->{backwards_compatible} ) {
         confess
