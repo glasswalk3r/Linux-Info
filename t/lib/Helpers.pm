@@ -18,14 +18,14 @@ sub total_lines {
 }
 
 sub tests_set_desc {
-    my ( $opts_ref, $kernel_info ) = @_;
+    my ( $opts, $kernel_info ) = @_;
 
     return ('Validating '
-          . $opts_ref->{source_file}
+          . $opts->get_source_file
           . ' information for '
           . $kernel_info
           . ' with backwards compatible turned '
-          . ( $opts_ref->{backwards_compatible} ? 'on' : 'off' ) );
+          . ( $opts->get_backwards_compatible ? 'on' : 'off' ) );
 }
 
 1;
