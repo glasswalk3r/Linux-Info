@@ -1,6 +1,6 @@
 use warnings;
 use strict;
-use Test::Most tests => 26;
+use Test::Most tests => 27;
 use File::Temp qw(tempfile);
 use Set::Tiny 0.04;
 
@@ -96,6 +96,18 @@ isa_ok(
 is( $instance->get_current_kernel->get_minor,
     6, 'fetches the correct minor number of a given kernel release' );
 
+my $block_size = 4096;
+$instance = Linux::Info::DiskStats::Options->new(
+    {
+        source_file          => $filename,
+        backwards_compatible => 1,
+        current_kernel       => '2.6.18-0-generic',
+        global_block_size    => $block_size,
+    }
+);
+
+is( $instance->get_global_block_size,
+    $block_size, 'get_global_block_size returns the expected value' );
 unlink $filename or diag("Failed to remove $filename: $!");
 
 sub test_file {

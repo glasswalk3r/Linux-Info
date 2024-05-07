@@ -150,6 +150,8 @@ sub new {
             confess 'global_block_size must have an integer as value'
               unless ( ( defined( $opts_ref->{global_block_size} ) )
                 and ( $opts_ref->{global_block_size} =~ $int_regex ) );
+
+            $self->{global_block_size} = $opts_ref->{global_block_size};
         }
 
         if ( exists $opts_ref->{block_sizes} ) {
@@ -163,6 +165,8 @@ sub new {
             foreach my $disk ( keys %{ $opts_ref->{block_sizes} } ) {
                 confess 'block size must be an integer'
                   unless ( $opts_ref->{block_sizes}->{$disk} =~ $int_regex );
+                $opts_ref->{block_sizes}->{$disk} =
+                  $opts_ref->{block_sizes}->{$disk};
             }
         }
 
