@@ -145,6 +145,16 @@ sub _block_size() {
     }
 }
 
+sub _shift_fields() {
+    my ( $self, $fields_ref ) = @_;
+    shift( @{$fields_ref} );    # nothing, really
+    my %non_stats;
+    $non_stats{major}       = shift( @{$fields_ref} );
+    $non_stats{minor}       = shift( @{$fields_ref} );
+    $non_stats{device_name} = shift( @{$fields_ref} );
+    return \%non_stats;
+}
+
 sub _parse_ssd {
     my $self        = shift;
     my $source_file = $self->{source_file};
@@ -166,17 +176,14 @@ sub _parse_ssd {
         }
 
         $self->{fields} = $available_fields;
-        shift(@fields);    # nothing, really
-        my $major       = shift(@fields);
-        my $minor       = shift(@fields);
-        my $device_name = shift(@fields);
+        my $non_stats_ref = $self->_shift_fields( \@fields );
 
         # TODO: make this another method, for reusing
         if ( $self->{backwards_compatible} ) {
-            my $size = $self->_block_size($device_name);
-            $stats{$device_name} = {
-                major  => $major,
-                minor  => $minor,
+            my $size = $self->_block_size( $non_stats_ref->{device_name} );
+            $stats{ $non_stats_ref->{device_name} } = {
+                major  => $non_stats_ref->{major},
+                minor  => $non_stats_ref->{minor},
                 rdreq  => $fields[4],
                 rdbyt  => ( $fields[5] * $size ),
                 wrtreq => $fields[6],
@@ -184,8 +191,9 @@ sub _parse_ssd {
                 ttreq  => ( $fields[4] + $fields[6] ),
             };
 
-            $stats{$device_name}->{ttbyt} =
-              $stats{$device_name}->{rdbyt} + $stats{$device_name}->{wrtbyt};
+            $stats{ $non_stats_ref->{device_name} }->{ttbyt} =
+              $stats{ $non_stats_ref->{device_name} }->{rdbyt} +
+              $stats{ $non_stats_ref->{device_name} }->{wrtbyt};
         }
         else {
             my @name_position = (
@@ -202,7 +210,8 @@ sub _parse_ssd {
 
             my $field_counter = 0;
             for my $field_name (@name_position) {
-                $stats{$device_name}->{$field_name} = $fields[$field_counter];
+                $stats{ $non_stats_ref->{device_name} }->{$field_name} =
+                  $fields[$field_counter];
                 $field_counter++;
             }
         }
@@ -215,7 +224,79 @@ sub _parse_ssd {
 }
 
 sub _parse_disk_stats {
+    my $self        = shift;
+    my $source_file = $self->{source_file};
 
+    open my $fh, '<', $source_file or confess "Cannot read $source_file: $!";
+    my %stats;
+
+    while ( my $line = <$fh> ) {
+        chomp $line;
+        my @fields           = split( SPACES_REGEX, $line );
+        my $available_fields = scalar(@fields);
+
+        if (    ( $self->{fields} > 0 )
+            and ( $self->{fields} != $available_fields ) )
+        {
+            carp 'Inconsistent number of fields, had '
+              . $self->{fields}
+              . ", now have $available_fields";
+        }
+
+        $self->{fields} = $available_fields;
+        my $non_stats_ref = $self->_shift_fields( \@fields );
+
+        # TODO: make this another method, for reusing
+        if ( $self->{backwards_compatible} ) {
+            my $size = $self->_block_size( $non_stats_ref->{device_name} );
+            $stats{ $non_stats_ref->{device_name} } = {
+                major  => $non_stats_ref->{major},
+                minor  => $non_stats_ref->{minor},
+                rdreq  => $fields[4],
+                rdbyt  => ( $fields[5] * $size ),
+                wrtreq => $fields[6],
+                wrtbyt => ( $fields[7] * $size ),
+                ttreq  => ( $fields[4] + $fields[6] ),
+            };
+
+            $stats{ $non_stats_ref->{device_name} }->{ttbyt} =
+              $stats{ $non_stats_ref->{device_name} }->{rdbyt} +
+              $stats{ $non_stats_ref->{device_name} }->{wrtbyt};
+        }
+        else {
+            # 4 - reads completed successfully
+            # 5 - reads merged
+            # 6 - sectors read
+            # 7 - time spent reading (ms)
+            # 8 - writes completed
+            # 9 - writes merged
+            # 10 - sectors written
+            # 11 - time spent writing (ms)
+            # 12 - I/Os currently in progress
+            # 13 - time spent doing I/Os (ms)
+            # 14 - weighted time spent doing I/Os (ms)
+            my @name_position = (
+                'read_completed',  'read_merged',
+                'sectors_read',    'read_time',
+                'write_completed', 'write_merged',
+                'sectors_written', 'write_time',
+                'io_in_progress',  'io_time',
+                'weighted_io_time',
+            );
+
+            my $field_counter = 0;
+            for my $field_name (@name_position) {
+                $stats{ $non_stats_ref->{device_name} }->{$field_name} =
+                  $fields[$field_counter];
+                $field_counter++;
+            }
+        }
+    }
+
+    close($fh) or confess "Cannot close $source_file: $!";
+    confess "Failed to fetch statistics from $source_file"
+      unless ( ( scalar( keys(%stats) ) ) > 0 );
+    return \%stats;
 }
 
 sub _parse_partitions {
