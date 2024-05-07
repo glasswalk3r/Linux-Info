@@ -125,7 +125,7 @@ L<Linux::Info::DiskStats::Calculated>.
 
 =cut
 
-sub _block_size() {
+sub _block_size {
     my ( $self, $device_name ) = @_;
 
     return $self->{global_block_size}
@@ -145,8 +145,10 @@ sub _block_size() {
     }
 }
 
-sub _shift_fields() {
-    my ( $self, $fields_ref ) = @_;
+sub _shift_fields {
+    my $fields_ref = shift;
+    confess 'Must receive an array reference as parameter'
+      unless ( ( defined($fields_ref) ) and ( ref $fields_ref eq 'ARRAY' ) );
     shift( @{$fields_ref} );    # nothing, really
     my %non_stats;
     $non_stats{major}       = shift( @{$fields_ref} );
@@ -176,7 +178,7 @@ sub _parse_ssd {
         }
 
         $self->{fields} = $available_fields;
-        my $non_stats_ref = $self->_shift_fields( \@fields );
+        my $non_stats_ref = _shift_fields( \@fields );
 
         # TODO: make this another method, for reusing
         if ( $self->{backwards_compatible} ) {
@@ -244,7 +246,7 @@ sub _parse_disk_stats {
         }
 
         $self->{fields} = $available_fields;
-        my $non_stats_ref = $self->_shift_fields( \@fields );
+        my $non_stats_ref = _shift_fields( \@fields );
 
         # TODO: make this another method, for reusing
         if ( $self->{backwards_compatible} ) {
