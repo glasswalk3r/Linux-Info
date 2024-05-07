@@ -157,6 +157,25 @@ sub _shift_fields {
     return \%non_stats;
 }
 
+sub _backwards_fields {
+    my ( $size, $non_stats_ref, $stats_ref, $fields_ref ) = @_;
+    my $device_name = $non_stats_ref->{device_name};
+
+    $stats_ref->{$device_name} = {
+        major  => $non_stats_ref->{major},
+        minor  => $non_stats_ref->{minor},
+        rdreq  => $fields_ref->[4],
+        rdbyt  => ( $fields_ref->[5] * $size ),
+        wrtreq => $fields_ref->[6],
+        wrtbyt => ( $fields_ref->[7] * $size ),
+        ttreq  => ( $fields_ref->[4] + $fields_ref->[6] ),
+    };
+
+    $stats_ref->{$device_name}->{ttbyt} =
+      $stats_ref->{$device_name}->{rdbyt} +
+      $stats_ref->{$device_name}->{wrtbyt};
+}
+
 sub _parse_ssd {
     my $self        = shift;
     my $source_file = $self->{source_file};
@@ -180,22 +199,10 @@ sub _parse_ssd {
         $self->{fields} = $available_fields;
         my $non_stats_ref = _shift_fields( \@fields );
 
-        # TODO: make this another method, for reusing
         if ( $self->{backwards_compatible} ) {
-            my $size = $self->_block_size( $non_stats_ref->{device_name} );
-            $stats{ $non_stats_ref->{device_name} } = {
-                major  => $non_stats_ref->{major},
-                minor  => $non_stats_ref->{minor},
-                rdreq  => $fields[4],
-                rdbyt  => ( $fields[5] * $size ),
-                wrtreq => $fields[6],
-                wrtbyt => ( $fields[7] * $size ),
-                ttreq  => ( $fields[4] + $fields[6] ),
-            };
-
-            $stats{ $non_stats_ref->{device_name} }->{ttbyt} =
-              $stats{ $non_stats_ref->{device_name} }->{rdbyt} +
-              $stats{ $non_stats_ref->{device_name} }->{wrtbyt};
+            _backwards_fields(
+                $self->_block_size( $non_stats_ref->{device_name} ),
+                $non_stats_ref, \%stats, \@fields );
         }
         else {
             my @name_position = (
@@ -248,22 +255,10 @@ sub _parse_disk_stats {
         $self->{fields} = $available_fields;
         my $non_stats_ref = _shift_fields( \@fields );
 
-        # TODO: make this another method, for reusing
         if ( $self->{backwards_compatible} ) {
-            my $size = $self->_block_size( $non_stats_ref->{device_name} );
-            $stats{ $non_stats_ref->{device_name} } = {
-                major  => $non_stats_ref->{major},
-                minor  => $non_stats_ref->{minor},
-                rdreq  => $fields[4],
-                rdbyt  => ( $fields[5] * $size ),
-                wrtreq => $fields[6],
-                wrtbyt => ( $fields[7] * $size ),
-                ttreq  => ( $fields[4] + $fields[6] ),
-            };
-
-            $stats{ $non_stats_ref->{device_name} }->{ttbyt} =
-              $stats{ $non_stats_ref->{device_name} }->{rdbyt} +
-              $stats{ $non_stats_ref->{device_name} }->{wrtbyt};
+            _backwards_fields(
+                $self->_block_size( $non_stats_ref->{device_name} ),
+                $non_stats_ref, \%stats, \@fields );
         }
         else {
             # 4 - reads completed successfully
