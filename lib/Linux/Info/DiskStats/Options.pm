@@ -4,8 +4,20 @@ use strict;
 use Hash::Util qw(lock_keys);
 use Carp       qw(confess);
 use Regexp::Common 2017060201;
+use parent 'Class::Accessor';
+
+use Linux::Info::KernelRelease;
 
 # VERSION
+
+my @_attribs = (
+    'init_file',            'source_file',
+    'backwards_compatible', 'global_block_size',
+    'block_sizes',          'current_kernel'
+);
+
+__PACKAGE__->follow_best_practice;
+__PACKAGE__->mk_ro_accessors(@_attribs);
 
 =head1 NAME
 
@@ -32,7 +44,7 @@ validations in place anyway.
 
 =head1 METHODS
 
-=head1 new
+=head2 new
 
 The optional keys:
 
@@ -95,11 +107,24 @@ during creation by invoking C<new>.
 
 sub new {
     my ( $class, $opts_ref ) = @_;
-    my $self = {};
+    my $self = {
+        global_block_size => undef,
+        block_sizes       => undef,
+        source_file       => undef,
+        init_file         => undef,
+        current_kernel    => undef,
+    };
 
     if ( defined($opts_ref) ) {
         confess 'The options reference must be a hash reference'
           unless ( ref $opts_ref eq 'HASH' );
+    }
+
+    my $valid_keys = Set::Tiny->new(@_attribs);
+
+    foreach my $key ( keys %{$opts_ref} ) {
+        confess "The key $key in the hash reference is not valid"
+          unless ( $valid_keys->has($key) );
     }
 
     $self->{backwards_compatible} = 1
@@ -136,7 +161,109 @@ sub new {
 
     }
 
-    return bless $self, $class;
+    my @files_to_test = qw(init_file source_file);
+
+    foreach my $source_file (@files_to_test) {
+        if (    ( exists $opts_ref->{$source_file} )
+            and ( defined $opts_ref->{$source_file} ) )
+        {
+            confess 'the source file '
+              . $opts_ref->{$source_file}
+              . ' does not exist'
+              unless ( -r $opts_ref->{$source_file} );
+
+            $self->{$source_file} = $opts_ref->{$source_file};
+        }
+    }
+
+    if (    ( exists $opts_ref->{current_kernel} )
+        and ( defined $opts_ref->{current_kernel} ) )
+    {
+        $self->{current_kernel} =
+          Linux::Info::KernelRelease->new( $opts_ref->{current_kernel} );
+    }
+
+    bless $self, $class;
+    lock_keys( %{$self} );
+    return $self;
 }
+
+=head2 get_init_file
+
+Getter for the C<init_file> attribute.
+
+It will return C<undef> if the property wasn't defined.
+
+=head2 get_source_file
+
+Getter for the C<source_file> attribute.
+
+It will return C<undef> if the property wasn't defined.
+
+=head2 get_backwards_compatible
+
+Getter for the C<backwards_compatible> attribute.
+
+It will return C<undef> if the property wasn't defined.
+
+=head2 get_block_sizes
+
+Getter for the C<block_sizes> attribute.
+
+It will return C<undef> if the property wasn't defined.
+
+=head2 get_global_block_size
+
+Getter for the C<global_block_size> attribute.
+
+It will return C<undef> if the property wasn't defined.
+
+=head2 get_current_kernel
+
+Getter for the C<current_kernel> attribute.
+
+It will return C<undef> if the property wasn't defined.
+
+=cut
+
+=head1 SEE ALSO
+
+=over
+
+=item *
+
+L<Linux::Info::DiskStats>
+
+=item *
+
+L<Linux::Info::KernelRelease>
+
+=back
+
+=head1 AUTHOR
+
+Alceu Rodrigues de Freitas Junior, E<lt>glasswalk3r@yahoo.com.brE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2024 of Alceu Rodrigues de Freitas Junior,
+E<lt>glasswalk3r@yahoo.com.brE<gt>
+
+This file is part of Linux Info project.
+
+Linux-Info is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Linux-Info is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Linux Info. If not, see <http://www.gnu.org/licenses/>.
+
+=cut
 
 1;
