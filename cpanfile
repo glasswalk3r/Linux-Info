@@ -3,10 +3,11 @@
 
 requires "Carp" => "0";
 requires "Class::Accessor" => "0.51";
-requires "Devel::CheckOS" => "1.96";
+requires "Devel::CheckOS" => "2.01";
 requires "Filesys::Df" => "0.92";
 requires "Hash::Util" => "0";
 requires "POSIX" => "1.15";
+requires "Regexp::Common" => "2017060201";
 requires "Set::Tiny" => "0.04";
 requires "Time::HiRes" => "1.9764";
 requires "YAML::XS" => "0.88";
@@ -16,7 +17,7 @@ requires "perl" => "5.008009";
 
 on 'test' => sub {
   requires "Exporter" => "0";
-  requires "Regexp::Common" => "0";
+  requires "File::Temp" => "0";
   requires "Scalar::Util" => "0";
   requires "Test::More" => "0";
   requires "Test::Most" => "0.35";

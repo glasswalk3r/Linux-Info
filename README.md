@@ -4,6 +4,13 @@
 
 API in Perl to recover information about the running Linux OS
 
+## WARNING
+
+The version 2.0 and beyond brakes compatibility with the
+`Linux::Info::DiskStats module` in previuous versions.
+
+Be sure to read the related documentation to avoid issues when upgrading.
+
 ## DESCRIPTION
 
 `Linux::Info` is a fork from [Sys::Statistics::Linux](https://metacpan.org/pod/Sys::Statistics::Linux) distribution.
