@@ -19,8 +19,6 @@ my $opts = Linux::Info::DiskStats::Options->new(
     }
 );
 
-diag( explain($opts) );
-
 note( tests_set_desc( $opts, KERNEL_INFO ) );
 
 my $instance = Linux::Info::DiskStats->new($opts);
