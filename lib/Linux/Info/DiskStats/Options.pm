@@ -3,23 +3,20 @@ use warnings;
 use strict;
 use Hash::Util qw(lock_keys);
 use Carp       qw(confess);
-use parent 'Class::Accessor';
-
 use Regexp::Common 2017060201;
 use Set::Tiny 0.04;
+use Class::XSAccessor getters => {
+    get_init_file            => 'init_file',
+    get_source_file          => 'source_file',
+    get_backwards_compatible => 'backwards_compatible',
+    get_global_block_size    => 'global_block_size',
+    get_block_sizes          => 'block_sizes',
+    get_current_kernel       => 'current_kernel'
+};
 
 use Linux::Info::KernelRelease;
 
 # VERSION
-
-my @_attribs = (
-    'init_file',            'source_file',
-    'backwards_compatible', 'global_block_size',
-    'block_sizes',          'current_kernel'
-);
-
-__PACKAGE__->follow_best_practice;
-__PACKAGE__->mk_ro_accessors(@_attribs);
 
 =head1 NAME
 
@@ -122,7 +119,13 @@ sub new {
           unless ( ref $opts_ref eq 'HASH' );
     }
 
-    my $valid_keys = Set::Tiny->new(@_attribs);
+    my $valid_keys = Set::Tiny->new(
+        (
+            'init_file',            'source_file',
+            'backwards_compatible', 'global_block_size',
+            'block_sizes',          'current_kernel'
+        )
+    );
 
     foreach my $key ( keys %{$opts_ref} ) {
         confess "The key $key in the hash reference is not valid"

@@ -26,7 +26,7 @@ jobs:
             YAML::XS
             Time::HiRes~1.9764
             POSIX
-            Class::Accessor
+            Class::XSAccessor
             Devel::CheckOS
             Test::Perl::Critic
             Test::Pod

@@ -2,7 +2,7 @@
 # Prereqs are detected automatically. You do not need to edit this file
 
 requires "Carp" => "0";
-requires "Class::Accessor" => "0.51";
+requires "Class::XSAccessor" => "1.19";
 requires "Devel::CheckOS" => "2.01";
 requires "Filesys::Df" => "0.92";
 requires "Hash::Util" => "0";
@@ -12,7 +12,6 @@ requires "Set::Tiny" => "0.04";
 requires "Time::HiRes" => "1.9764";
 requires "YAML::XS" => "0.88";
 requires "overload" => "0";
-requires "parent" => "0";
 requires "perl" => "5.008009";
 
 on 'test' => sub {
