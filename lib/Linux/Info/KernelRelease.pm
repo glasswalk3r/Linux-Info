@@ -2,14 +2,17 @@ package Linux::Info::KernelRelease;
 use strict;
 use warnings;
 use Carp qw(confess carp);
-use parent 'Class::Accessor';
+use Class::XSAccessor getters => {
+    get_raw              => 'raw',
+    get_mainline_version => 'mainline_version',
+    get_abi_bump         => 'abi_bump',
+    get_flavour          => 'flavour',
+    get_major            => 'major',
+    get_minor            => 'minor',
+    get_patch            => 'patch',
+};
 
 # VERSION
-
-my @_attribs = qw(raw mainline_version abi_bump flavour major minor patch);
-
-__PACKAGE__->follow_best_practice;
-__PACKAGE__->mk_ro_accessors(@_attribs);
 
 =pod
 

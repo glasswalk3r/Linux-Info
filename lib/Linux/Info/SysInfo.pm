@@ -4,8 +4,27 @@ use warnings;
 use Carp qw(croak);
 use POSIX 1.15;
 use Hash::Util qw(lock_keys);
-use base 'Class::Accessor';
 use Devel::CheckOS 2.01 qw(os_is);
+use Class::XSAccessor getters => {
+    get_raw_time         => 'raw_time',
+    get_hostname         => 'hostname',
+    get_domain           => 'domain',
+    get_kernel           => 'kernel',
+    get_release          => 'release',
+    get_version          => 'version',
+    get_mem              => 'mem',
+    get_swap             => 'swap',
+    get_pcpucount        => 'pcpucount',
+    get_tcpucount        => 'tcpucount',
+    get_interfaces       => 'interfaces',
+    get_arch             => 'arch',
+    get_proc_arch        => 'proc_arch',
+    get_cpu_flags        => 'cpu_flags',
+    get_uptime           => 'uptime',
+    get_idletime         => 'idletime',
+    get_model            => 'model',
+    get_mainline_version => 'mainline_version',
+};
 
 # VERSION
 
@@ -16,9 +35,6 @@ my @_attribs = (
     'proc_arch', 'cpu_flags', 'uptime',     'idletime',
     'model',     'mainline_version',
 );
-
-__PACKAGE__->follow_best_practice;
-__PACKAGE__->mk_ro_accessors(@_attribs);
 
 =head1 NAME
 
@@ -273,9 +289,7 @@ sub _set {
     my $file  = $self->{files};
 
     foreach my $attrib (@_attribs) {
-
         $self->{$attrib} = undef unless ( exists( $self->{$attrib} ) );
-
     }
 
     $self->_set_common;
