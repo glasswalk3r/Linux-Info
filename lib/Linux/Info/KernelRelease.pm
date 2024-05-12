@@ -2,6 +2,7 @@ package Linux::Info::KernelRelease;
 use strict;
 use warnings;
 use Carp qw(confess carp);
+use Set::Tiny 0.04;
 use Class::XSAccessor getters => {
     get_raw              => 'raw',
     get_mainline_version => 'mainline_version',
@@ -10,6 +11,10 @@ use Class::XSAccessor getters => {
     get_major            => 'major',
     get_minor            => 'minor',
     get_patch            => 'patch',
+    get_compiled_by      => 'compiled_by',
+    get_gcc_version      => 'gcc_version',
+    get_type             => 'type',
+    get_build_datetime   => 'build_datetime',
 };
 
 # VERSION
@@ -24,16 +29,21 @@ Linux::Info::KernelRelease - parses and provide Linux kernel detailed informatio
 
 Getting the current kernel information:
 
-    my $current = Linux::Info::KernelRelease->new( Linux::Info::SysInfo->new->get_release );
+    my $sys = Linux::Info::SysInfo->new;
+    my $current = Linux::Info::KernelRelease->new({
+        release  => $sys->get_release,
+        version  => $sys->get_version,
+        mainline => $sys->get_mainline_version
+    });
 
-Or using a given kernel information:
+Or using a given Linux kernel release string:
 
     my $kernel = Linux::Info::KernelRelease->new('2.4.20-0-generic');
 
 Now you can compare both:
 
     if ($current > $kernel) {
-        say 'System kernel was upgraded!';
+        say 'Kernel was upgraded!';
     }
 
 =head1 DESCRIPTION
@@ -51,35 +61,96 @@ class overload operators like ">=", ">" and "<".
 
 Creates a new instance.
 
-Expects as parameter the kernel release information (like from C<uname -r>
-output). This is required.
+Expects as parameter the kernel release information
+(F</proc/sys/kernel/osrelease>).
 
-Optionally, you can pass the kernel mainline information if available (as from
-F</proc/version_signature> on Ubuntu Linux). With this parameter, more
-information will be available.
+Optionally, you can pass:
+
+=over
+
+=item 1.
+
+The kernel version information (F</proc/version>).
+
+=item 2.
+
+The kernel mainline information if available (as from
+F</proc/version_signature> on Ubuntu Linux).
+
+=back
+
+With those parameters, even more information will be available.
 
 =cut
 
-sub new {
-    my ( $class, $release, $mainline ) = @_;
+# Linux version 2.6.18-92.el5 (brewbuilder@ls20-bc2-13.build.redhat.com) (gcc version 4.1.2 20071124 (Red Hat 4.1.2-41)) #1 SMP Tue Apr 29 13:16:15 EDT 2008
+# Linux version 4.18.0-513.5.1.el8_9.x86_64 (mockbuild@iad1-prod-build001.bld.equ.rockylinux.org) (gcc version 8.5.0 20210514 (Red Hat 8.5.0-20) (GCC)) #1 SMP Fri Nov 17 03:31:10 UTC 2023
 
-    confess "Must receive a string as kernel release information"
-      unless ($release);
+# Linux version 6.5.0-28-generic (buildd@lcy02-amd64-098) (x86_64-linux-gnu-gcc-12 (Ubuntu 12.3.0-1ubuntu1~22.04) 12.3.0, GNU ld (GNU Binutils for Ubuntu) 2.38) #29~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Thu Apr  4 14:39:20 UTC 2
+
+sub new {
+    my ( $class, $opts_ref ) = @_;
+    confess "Must receive a hash reference as parameter"
+      unless ( defined($opts_ref) and ( ref $opts_ref eq 'HASH' ) );
+
+    confess 'The release key is required'
+      unless ( exists $opts_ref->{release} );
 
     # 6.5.0-28-generic
-    confess "The received string for release '$release' is invalid"
-      unless ( $release =~ /^\d\.\d+\.\d+(\-\d+\-[a-z]+)?/ );
+    unless ( $opts_ref->{release} =~ /^\d\.\d+\.\d+(\-\d+\-[a-z]+)?/ ) {
+        my $error =
+          'The string for release "' . $opts_ref->{release} . '" is invalid';
+        confess $error;
+    }
 
-    my @pieces = split( '-', $release );
+    my @pieces = split( '-', $opts_ref->{release} );
 
     my $self = {
-        raw      => $release,
+        raw      => $opts_ref->{release},
         abi_bump => $pieces[-2],
         flavour  => $pieces[-1]
     };
 
-    $self->{mainline_version} =
-      ($mainline) ? ( split( /\s/, $mainline ) )[-1] : $pieces[0];
+    my $acceptable = Set::Tiny->new(qw(release version mainline));
+
+    foreach my $key ( keys %{$opts_ref} ) {
+        confess "$key key is invalid" unless $acceptable->has($key);
+    }
+
+    my @version_data = qw(compiled_by gcc_version type build_datetime);
+
+    # if RedHat
+    if ( ( exists $opts_ref->{version} ) and ( defined $opts_ref->{version} ) )
+    {
+        my $regex =
+qr/^Linux\sversion\s[\w\._-]+\s\((?<compiled_by>[\w\.\-\@]+)\)\s\(gcc\sversion\s(?<gcc_version>[\d\.]+).*\)\s#1\s(?<type>\w+)\s(?<build_datetime>.*)/;
+        if ( $opts_ref->{version} =~ $regex ) {
+            foreach my $attrib (@version_data) {
+                $self->{$attrib} = $+{$attrib};
+            }
+        }
+        else {
+            foreach my $attrib (@version_data) {
+                $self->{$attrib} = undef;
+            }
+        }
+    }
+    else {
+        foreach my $attrib (@version_data) {
+            $self->{$attrib} = undef;
+        }
+    }
+
+    if (    ( exists $opts_ref->{mainline} )
+        and ( defined( $opts_ref->{mainline} ) ) )
+    {
+        $self->{mainline_version} =
+          ( split( /\s/, $opts_ref->{mainline} ) )[-1];
+    }
+    else {
+        $self->{mainline_version} = $pieces[0];
+    }
+
     bless $self, $class;
     $self->_parse_version();
     return $self;
