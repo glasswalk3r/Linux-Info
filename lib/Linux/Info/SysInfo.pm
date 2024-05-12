@@ -5,7 +5,8 @@ use Carp qw(croak);
 use POSIX 1.15;
 use Hash::Util qw(lock_keys);
 use Devel::CheckOS 2.01 qw(os_is);
-use Class::XSAccessor getters => {
+use Class::XSAccessor
+  getters => {
     get_raw_time         => 'raw_time',
     get_hostname         => 'hostname',
     get_domain           => 'domain',
@@ -24,7 +25,8 @@ use Class::XSAccessor getters => {
     get_idletime         => 'idletime',
     get_model            => 'model',
     get_mainline_version => 'mainline_version',
-};
+  },
+  exists_predicates => { has_multithread => 'multithread', };
 
 # VERSION
 
@@ -133,97 +135,6 @@ counted by C<processor>.
 
 All attributes are read-only. Their corresponding value can will be returned upon invocation of their respective "get_" method.
 
-=head1 METHODS
-
-=head2 new()
-
-Call C<new()> to create a new object.
-
-    my $lxs = Linux::Info::SysInfo->new();
-
-Without any parameters.
-
-If you want to get C<uptime> and C<idletime> as raw value, then pass the following hash reference as parameter:
-
-    my $lxs = Linux::Info::SysInfo->new({ raw_time => 1});
-
-By default the C<raw_time> attribute is false.
-
-=head2 get_proc_arch
-
-This method will return an integer as the architecture of the CPUs: 32 or 64 bits, depending on the flags
-retrieve for one CPU.
-
-It is assumed that all CPUs will have the same flags, so this method will consider only the flags returned
-by the CPU with "core id" equal to 0 (in other words, the first CPU found).
-
-=head2 get_cpu_flags
-
-Returns an array reference with all flags retrieve from C</proc/cpuinfo> using the same logic described in
-C<get_proc_arch> documentation.
-
-=head2 is_multithread
-
-A getter for the C<multithread> attribute.
-
-=head2 get_model
-
-A getter for the C<model> attribute.
-
-=head1 EXPORTS
-
-Nothing.
-
-=head1 KNOWN ISSUES
-
-Linux running on ARM processors have a different interface on /proc/cpuinfo. That means that the methods C<get_proc_arch> and C<get_cpu_flags>
-will not return their respective information. Tests for this module may fail as well.
-
-=head1 SEE ALSO
-
-=over
-
-=item *
-
-B<proc(5)>
-
-=item *
-
-L<Linux::Info>
-
-=item *
-
-L<POSIX>
-
-=item *
-
-L<Hash::Util>
-
-=back
-
-=head1 AUTHOR
-
-Alceu Rodrigues de Freitas Junior, E<lt>glasswalk3r@yahoo.com.brE<gt>
-
-=head1 COPYRIGHT AND LICENSE
-
-This software is copyright (c) 2015 of Alceu Rodrigues de Freitas Junior, E<lt>glasswalk3r@yahoo.com.brE<gt>
-
-This file is part of Linux Info project.
-
-Linux-Info is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Linux-Info is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Linux Info.  If not, see <http://www.gnu.org/licenses/>.
-
 =cut
 
 sub _mainline {
@@ -242,8 +153,25 @@ sub _mainline {
     }
 }
 
-sub new {
+=head1 METHODS
 
+=head2 new()
+
+Call C<new()> to create a new object.
+
+    my $lxs = Linux::Info::SysInfo->new();
+
+Without any parameters.
+
+If you want to get C<uptime> and C<idletime> as raw value, then pass the following hash reference as parameter:
+
+    my $lxs = Linux::Info::SysInfo->new({ raw_time => 1});
+
+By default the C<raw_time> attribute is false.
+
+=cut
+
+sub new {
     my $class    = shift;
     my $opts_ref = shift;
 
@@ -279,7 +207,6 @@ sub new {
     lock_keys( %{$self} );
 
     return $self;
-
 }
 
 sub _set {
@@ -308,12 +235,37 @@ sub _set {
     $self->_mainline();
 }
 
+=head2 is_multithread
+
+A deprecated getter for the C<multithread> attribute.
+
+Use C<has_multithread> method instead.
+
+=cut
+
 sub is_multithread {
-
-    my $self = shift;
-    return $self->{multithread};
-
+    warn 'This method will be deprecated, see the documentation';
+    return shift->{multithread};
 }
+
+=head2 get_proc_arch
+
+This method will return an integer as the architecture of the CPUs: 32 or 64 bits, depending on the flags
+retrieve for one CPU.
+
+It is assumed that all CPUs will have the same flags, so this method will consider only the flags returned
+by the CPU with "core id" equal to 0 (in other words, the first CPU found).
+
+=head2 get_cpu_flags
+
+Returns an array reference with all flags retrieve from C</proc/cpuinfo> using the same logic described in
+C<get_proc_arch> documentation.
+
+=head2 get_model
+
+A getter for the C<model> attribute.
+
+=cut
 
 sub _set_common {
 
@@ -504,5 +456,64 @@ sub _calsec {
     $s >= 60    and $m = sprintf( '%i', $s / 60 )    and $s = $s % 60;
     return ( $d, $h, $m, $s );
 }
+
+=head1 EXPORTS
+
+Nothing.
+
+=head1 KNOWN ISSUES
+
+Linux running on ARM processors have a different interface on F</proc/cpuinfo>.
+
+That means that the methods C<get_proc_arch> and C<get_cpu_flags> will not
+return their respective information. Tests for this module may fail as well.
+
+=head1 SEE ALSO
+
+=over
+
+=item *
+
+B<proc(5)>
+
+=item *
+
+L<Linux::Info>
+
+=item *
+
+L<POSIX>
+
+=item *
+
+L<Hash::Util>
+
+=back
+
+=head1 AUTHOR
+
+Alceu Rodrigues de Freitas Junior, E<lt>glasswalk3r@yahoo.com.brE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2015 of Alceu Rodrigues de Freitas Junior,
+E<lt>glasswalk3r@yahoo.com.brE<gt>
+
+This file is part of Linux Info project.
+
+Linux-Info is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Linux-Info is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Linux Info.  If not, see <http://www.gnu.org/licenses/>.
+
+=cut
 
 1;

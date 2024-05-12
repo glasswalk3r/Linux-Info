@@ -8,16 +8,16 @@ BEGIN { use_ok('Linux::Info::SysInfo') }
 
 my $obj     = new_ok('Linux::Info::SysInfo');
 my @methods = (
-    'get_raw_time',   'get_hostname',
-    'get_domain',     'get_kernel',
-    'get_release',    'get_version',
-    'get_mem',        'get_swap',
-    'get_pcpucount',  'get_tcpucount',
-    'get_interfaces', 'get_arch',
-    'get_proc_arch',  'get_cpu_flags',
-    'get_uptime',     'get_idletime',
-    'is_multithread', 'get_model',
-    'get_mainline_version',
+    'get_raw_time',         'get_hostname',
+    'get_domain',           'get_kernel',
+    'get_release',          'get_version',
+    'get_mem',              'get_swap',
+    'get_pcpucount',        'get_tcpucount',
+    'get_interfaces',       'get_arch',
+    'get_proc_arch',        'get_cpu_flags',
+    'get_uptime',           'get_idletime',
+    'is_multithread',       'get_model',
+    'get_mainline_version', 'has_multithread',
 );
 can_ok( $obj, @methods );
 
