@@ -84,7 +84,7 @@ release - The kernel release.
 
 =item *
 
-version - The kernel version.
+version - The kernel version details.
 
 =item *
 
@@ -185,17 +185,17 @@ sub new {
 
     my %self = (
         files => {
-            path     => "/proc",
-            meminfo  => "meminfo",
-            sysinfo  => "sysinfo",
-            cpuinfo  => "cpuinfo",
-            uptime   => "uptime",
-            hostname => "sys/kernel/hostname",
-            domain   => "sys/kernel/domainname",
-            kernel   => "sys/kernel/ostype",
-            release  => "sys/kernel/osrelease",
-            version  => "sys/kernel/version",
-            netdev   => "net/dev",
+            path     => '/proc',
+            meminfo  => 'meminfo',
+            sysinfo  => 'sysinfo',
+            cpuinfo  => 'cpuinfo',
+            uptime   => 'uptime',
+            hostname => 'sys/kernel/hostname',
+            domain   => 'sys/kernel/domainname',
+            kernel   => 'sys/kernel/ostype',
+            release  => 'sys/kernel/osrelease',
+            version  => 'version',
+            netdev   => 'net/dev',
         },
         arch     => ( uname() )[4],
         raw_time => $raw_time,
