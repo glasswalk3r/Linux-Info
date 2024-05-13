@@ -36,6 +36,11 @@ Getting the current kernel information:
         mainline => $sys->get_mainline_version
     });
 
+Or using L<Linux::Info::SysInfo> syntax sugar to achieve the same result:
+
+    my $sys = Linux::Info::SysInfo->new;
+    my $current = $sys->get_detailed_kernel;
+
 Or using a given Linux kernel release string:
 
     my $kernel = Linux::Info::KernelRelease->new('2.4.20-0-generic');
@@ -88,6 +93,8 @@ With those parameters, even more information will be available.
 
 # Linux version 6.5.0-28-generic (buildd@lcy02-amd64-098) (x86_64-linux-gnu-gcc-12 (Ubuntu 12.3.0-1ubuntu1~22.04) 12.3.0, GNU ld (GNU Binutils for Ubuntu) 2.38) #29~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Thu Apr  4 14:39:20 UTC 2
 
+my @version_data = qw(compiled_by gcc_version type build_datetime);
+
 sub new {
     my ( $class, $opts_ref ) = @_;
     confess "Must receive a hash reference as parameter"
@@ -116,8 +123,6 @@ sub new {
     foreach my $key ( keys %{$opts_ref} ) {
         confess "$key key is invalid" unless $acceptable->has($key);
     }
-
-    my @version_data = qw(compiled_by gcc_version type build_datetime);
 
     # if RedHat
     if ( ( exists $opts_ref->{version} ) and ( defined $opts_ref->{version} ) )

@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 25;
+use Test::More tests => 28;
 use Scalar::Util qw(looks_like_number);
 use Devel::CheckOS 2.01 qw(os_is);
 
@@ -18,6 +18,7 @@ my @methods = (
     'get_uptime',           'get_idletime',
     'is_multithread',       'get_model',
     'get_mainline_version', 'has_multithread',
+    'get_detailed_kernel',  'get_basic_kernel',
 );
 can_ok( $obj, @methods );
 
@@ -59,12 +60,20 @@ ok(
     'get_mainline_version can fetch a valid value'
 );
 
+my $kernel = $obj->get_detailed_kernel;
+isa_ok( $kernel, 'Linux::Info::KernelRelease' );
+
 SKIP: {
-    skip 'Not available on Linux distributions not based on Ubuntu', 1
+    skip 'Not available on Linux distributions not based on Ubuntu', 2
       unless ( os_is('Linux::Ubuntu') );
     ok( $obj->get_mainline_version(),
         'get_mainline_version returns a defined value on Ubuntu-like distros' );
+    ok( $kernel->get_abi_bump,
+        'get_abi_bump returns a defined value from KernelRelease instance' );
 }
+
+$kernel = $obj->get_basic_kernel;
+isa_ok( $kernel, 'Linux::Info::KernelRelease' );
 
 note(
 'tests implemented due report http://www.cpantesters.org/cpan/report/9ae1c364-7671-11e5-aad0-c5a10b3facc5'

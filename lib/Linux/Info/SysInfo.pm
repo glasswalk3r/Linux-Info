@@ -4,7 +4,6 @@ use warnings;
 use Carp qw(croak);
 use POSIX 1.15;
 use Hash::Util qw(lock_keys);
-use Devel::CheckOS 2.01 qw(os_is);
 use Class::XSAccessor
   getters => {
     get_raw_time         => 'raw_time',
@@ -27,6 +26,8 @@ use Class::XSAccessor
     get_mainline_version => 'mainline_version',
   },
   exists_predicates => { has_multithread => 'multithread', };
+
+use Linux::Info::KernelRelease;
 
 # VERSION
 
@@ -76,7 +77,10 @@ domain - The host domain name.
 
 =item *
 
-kernel - The kernel name.
+kernel - The kernel name (just a string)
+
+See C<get_basic_kernel> and C<get_detailed_kernel> for a instance of
+L<Linux::Info::KernelRelease>.
 
 =item *
 
@@ -138,10 +142,11 @@ All attributes are read-only. Their corresponding value can will be returned upo
 =cut
 
 sub _mainline {
-    my $self = shift;
+    my $self   = shift;
+    my $source = '/proc/version_signature';
 
-    if ( os_is('Linux::Ubuntu') ) {
-        my $source = '/proc/version_signature';
+    # this is specific to Ubuntu Linux
+    if ( -r $source ) {
         open( my $in, '<', $source ) or confess("Cannot read $source: $!");
         my $raw = <$in>;
         close($in) or confess("Cannot close $source: $!");
@@ -265,10 +270,43 @@ C<get_proc_arch> documentation.
 
 A getter for the C<model> attribute.
 
+=head2 get_detailed_kernel
+
+Returns an instance of L<Linux::Info::KernelRelease> with all possible
+information that is available.
+
 =cut
 
-sub _set_common {
+sub get_detailed_kernel {
+    my $self = shift;
+    return Linux::Info::KernelRelease->new(
+        {
+            release  => $self->get_release,
+            version  => $self->get_version,
+            mainline => $self->get_mainline_version
+        }
+    );
+}
 
+=head2 get_basic_kernel
+
+Returns an instance of L<Linux::Info::KernelRelease> with the minimum
+information required to.
+
+Should be faster to fetch if extended information is not required or you just
+need to compare Linux kernel versions.
+
+=cut
+
+sub get_basic_kernel {
+    return Linux::Info::KernelRelease->new(
+        {
+            release => shift->get_release,
+        }
+    );
+}
+
+sub _set_common {
     my $self  = shift;
     my $class = ref($self);
     my $file  = $self->{files};
@@ -330,15 +368,12 @@ sub _set_cpuinfo {
     my $arm_regex = qr/^Processor\s+\:\s(.*)/;
 
     while ( my $line = <$fh> ) {
-
         chomp($line);
 
       CASE: {
 
             if ( ( $line =~ $model_regex ) or ( $line =~ $arm_regex ) ) {
-
                 $self->{model} = $1;
-
             }
 
             if ( $line =~ /^physical\s+id\s*:\s*(\d+)/ ) {
@@ -373,33 +408,23 @@ sub _set_cpuinfo {
 
                 #long mode
                 if ( $value =~ /\slm\s/ ) {
-
                     $self->{proc_arch} = 64;
-
                 }
                 else {
-
                     $self->{proc_arch} = 32;
-
                 }
 
                 #hyper threading
                 if ( $value =~ /\sht\s/ ) {
-
                     $self->{multithread} = 1;
-
                 }
 
                 last CASE;
-
             }
-
         }
-
     }
 
     close($fh);
-
     $self->{pcpucount} = scalar( keys(%cpu) ) || $self->{tcpucount};
 }
 
@@ -422,9 +447,7 @@ sub _set_interfaces {
     }
 
     close $fh;
-
     $self->{interfaces} = \@iface;
-
 }
 
 sub _set_time {

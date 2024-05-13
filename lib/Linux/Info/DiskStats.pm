@@ -364,9 +364,7 @@ sub new {
         $self->{current} = $opts->get_current_kernel;
     }
     else {
-        $self->{current} =
-          Linux::Info::KernelRelease->new(
-            Linux::Info::SysInfo->new->get_release );
+        $self->{current} = Linux::Info::SysInfo->new->get_basic_kernel;
     }
 
     $self->{backwards_compatible} = $opts->get_backwards_compatible;
@@ -382,8 +380,11 @@ sub new {
     unless ( defined $self->{source_file} ) {
 
         # not a real value, but should be enough accurate
-        if ( $self->{current} <
-            Linux::Info::KernelRelease->new('2.4.20-0-generic') )
+        if (
+            $self->{current} < Linux::Info::KernelRelease->new(
+                { release => '2.4.20-0-generic' }
+            )
+          )
         {
             $self->{source_file}  = '/proc/partitions';
             $self->{parse_method} = \&_parse_partitions;
@@ -394,8 +395,11 @@ sub new {
     }
 
     unless ( exists $self->{parse_method} ) {
-        if ( $self->{current} >=
-            Linux::Info::KernelRelease->new('2.6.18-0-generic') )
+        if (
+            $self->{current} >= Linux::Info::KernelRelease->new(
+                { release => '2.6.18-0-generic' }
+            )
+          )
         {
             $self->{parse_method} = \&_parse_ssd;
         }
