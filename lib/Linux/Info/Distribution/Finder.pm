@@ -9,6 +9,8 @@ use File::Spec;
 
 use Linux::Info::Distribution::OSRelease;
 
+# VERSION
+
 my %release_files = (
     'gentoo-release'        => 'gentoo',
     'fedora-release'        => 'fedora',

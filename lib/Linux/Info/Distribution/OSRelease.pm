@@ -8,6 +8,8 @@ use Hash::Util qw(lock_hash unlock_hash);
 
 use constant DEFAULT_FILE => '/etc/os-release';
 
+# VERSION
+
 sub parse {
     my $self = shift;
     my $file_path;

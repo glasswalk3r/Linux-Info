@@ -5,6 +5,8 @@ use strict;
 use Hash::Util qw(lock_hash lock_keys);
 use Carp       qw(confess);
 
+# VERSION
+
 my %distros = (
     rocky  => 'Rocky',
     ubuntu => 'Ubuntu',

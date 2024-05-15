@@ -8,6 +8,8 @@ use parent 'Linux::Info::Distribution';
 use Class::XSAccessor getters =>
   { get_source => 'source', get_regex => 'regex' };
 
+# VERSION
+
 sub _set_regex {
     confess 'Must be implemented by subclasses of ' . ref(shift);
 }

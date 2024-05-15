@@ -9,6 +9,8 @@ use Class::XSAccessor getters => {
     get_codename  => 'codename'
 };
 
+# VERSION
+
 sub _set_regex {
     my $self = shift;
     $self->{regex} =
