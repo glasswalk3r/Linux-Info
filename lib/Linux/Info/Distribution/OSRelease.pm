@@ -120,6 +120,21 @@ sub new {
     return $self;
 }
 
+=head2 clean_cache
+
+This class caches the information read from the source file into memory, so
+subclasses can reuse this information to handle additional attributes.
+
+After that, the information is usually and should be removed by invoking this
+method.
+
+=cut
+
+sub clean_cache {
+    my $self = shift;
+    delete( $self->{cache} );
+}
+
 =head2 get_source
 
 Returns a string with the file path from where the information was retrieved.

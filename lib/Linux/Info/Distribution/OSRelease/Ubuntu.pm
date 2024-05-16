@@ -53,8 +53,7 @@ sub new {
         $self->{$attrib} = $self->{cache}->{$attrib};
     }
 
-    delete( $self->{cache} );
-
+    $self->clean_cache;
     lock_hash( %{$self} );
     return $self;
 }
