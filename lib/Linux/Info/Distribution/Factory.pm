@@ -4,12 +4,17 @@ use warnings;
 use strict;
 use Hash::Util qw(lock_hash lock_keys);
 use Carp       qw(confess);
+use Data::Dumper;
+
+use Linux::Info::Distribution::Custom::RedHat;
+use Linux::Info::Distribution::OSRelease::Ubuntu;
 
 # VERSION
 
 my %distros = (
     rocky  => 'Rocky',
     ubuntu => 'Ubuntu',
+    redhat => 'RedHat',
 );
 lock_hash(%distros);
 
@@ -26,46 +31,45 @@ sub new {
     return $self;
 }
 
-sub _init {
-    my $self = shift;
-    return $self->{finder}->search_distro;
-}
-
 sub distro_name {
     my $self = shift;
-    my $name = $self->{finder}->distro_name;
-    return $name if ( defined $name );
-    $self->_init;
-    return $self->{finder}->distro_name;
+    return $self->create->get_name;
 }
 
 sub create {
-    my $self = shift;
-    $self->_init unless ( $self->{distro_name} );
+    my $self     = shift;
+    my $info_ref = $self->{finder}->search_distro;
 
-    if ( $self->{release_info} ) {
+    # TODO: create a method on Finder to define if it is custom or not
+    unless ( exists $info_ref->{file_to_parse} ) {
         my $base_class = 'Linux::Info::Distribution::OSRelease';
 
-        if ( exists $distros{ $self->{distro_id} } ) {
+        if ( exists $distros{ $info_ref->{distro_id} } ) {
             my $class = $base_class . '::' . $distros{ $self->{distro_id} };
-            return $class->new( $self->{release_info} );
+            return $class->new($info_ref);
         }
         else {
-            return $base_class->new( $self->{release_info} );
+            return $base_class->new($info_ref);
         }
     }
-    else {
-        my $class =
-          'Linux::Info::Distribution::Custom::' . $self->{distro_name};
-        return $class->new(
-            {
-                source_file => $self->{file_to_parse},
-                name        => $self->{distro_name},
-                id          => $self->{distro_id}
-            }
-        );
+
+    if ( exists $info_ref->{distro_id} ) {
+        my $distro_name;
+
+        if ( exists $distros{ $info_ref->{distro_id} } ) {
+            $distro_name = $distros{ $info_ref->{distro_id} };
+        }
+        else {
+            confess( 'Do not know how to handle the distro_id '
+                  . $info_ref->{distro_id} );
+        }
+
+        my $class = "Linux::Info::Distribution::Custom::$distro_name";
+        return $class->new($info_ref);
     }
 
+    confess(
+        'Missing distro_id, do not know how to handle ' . Dumper($info_ref) );
 }
 
 1;
