@@ -1,6 +1,6 @@
 use warnings;
 use strict;
-use Test::More;
+use Test::Most 0.38;
 
 my $class = 'Linux::Info::Distribution';
 require_ok($class);
@@ -25,5 +25,11 @@ is(
 );
 is( $instance->get_version, $attribs_ref->{version}, 'get_version works' );
 is( $instance->get_id,      $attribs_ref->{id},      'get_id works' );
+
+dies_ok { $class->new } 'new dies without the required parameter';
+like $@, qr/hash\sreference/, 'got expected error message';
+
+dies_ok { $class->new( {} ) } 'new dies without the required hash keys';
+like $@, qr/missing\sthe\skey/, 'got expected error message';
 
 done_testing;

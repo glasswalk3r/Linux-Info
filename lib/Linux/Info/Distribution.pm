@@ -27,6 +27,17 @@ ID=ubuntu
 
 sub new {
     my ( $class, $params_ref ) = @_;
+
+    confess 'Must receive a hash reference as parameter'
+      unless ( ( defined($params_ref) ) and ( ref $params_ref eq 'HASH' ) );
+
+    my @expected = qw(name id version version_id);
+
+    foreach my $key (@expected) {
+        confess "The hash reference is missing the key $key"
+          unless ( exists $params_ref->{$key} );
+    }
+
     my $self = {
         name       => $params_ref->{name},
         id         => $params_ref->{id},
