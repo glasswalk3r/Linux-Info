@@ -1,0 +1,88 @@
+package Linux::Info::Distribution::OSRelease::Rocky;
+
+use warnings;
+use strict;
+use parent 'Linux::Info::Distribution::OSRelease';
+use Hash::Util qw(lock_hash unlock_hash);
+use Class::XSAccessor getters => {
+    get_platform_id                    => 'platform_id',
+    get_ansi_color                     => 'ansi_color',
+    get_logo                           => 'logo',
+    get_cpe_name                       => 'cpe_name',
+    get_bug_report_url                 => 'bug_report_url',
+    get_support_end                    => 'support_end',
+    get_rocky_support_product          => 'rocky_support_product',
+    get_rocky_support_product_version  => 'rocky_support_product_version',
+    get_redhat_support_product         => 'redhat_support_product',
+    get_redhat_support_product_version => 'redhat_support_product_version',
+};
+
+=pod
+
+=head1 NAME
+
+Linux::Info::Distribution::OSRelease::Rocky - a subclass of Linux::Info::Distribution::OSRelease
+
+=head1 DESCRIPTION
+
+This subclass extends the attributes available on the parent class based on
+what Rocky makes available.
+
+See the methods to check which additional information is avaiable.
+
+=head1 METHODS
+
+=head2 new
+
+Returns a new instance of this class.
+
+Expects as an optional parameter the complete path to a file that will be used
+to retrieve data in the expected format.
+
+=head2 get_platform_id
+
+Returns the string of platform ID.
+
+=head2 get_ansi_color
+
+Returns the string of the respective ANSI color code.
+
+=head2 get_logo
+
+Returns the logotype of the distribution filename.
+
+=head2 get_cpe_name
+
+Returns the CPE name.
+
+=head2 get_bug_report_url
+
+Returns the URL to report bugs for the distribution.
+
+=head2 get_support_end
+
+Returns a string of the data when the support for this distribution will end.
+
+=head2 get_rocky_support_product
+
+Returns a string of the Rocky product for support.
+
+=head2 get_rocky_support_product_version
+
+Returns a string of the Rocky product version for support.
+
+=head2 get_redhat_support_product
+
+Returns a string of the RedHat product for support.
+
+=head2 get_redhat_support_product_version
+
+Returns a string of the RedHat product version for support.
+
+=head1 EXPORTS
+
+Nothing.
+
+=cut
+
+1;
