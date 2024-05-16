@@ -5,10 +5,7 @@ use strict;
 use parent 'Linux::Info::Distribution::OSRelease';
 use Hash::Util qw(lock_hash unlock_hash);
 use Class::XSAccessor getters => {
-    get_pretty_name        => 'pretty_name',
     get_version_codename   => 'version_codename',
-    get_id_like            => 'id_like',
-    get_home_url           => 'home_url',
     get_support_url        => 'support_url',
     get_bug_report_url     => 'bug_report_url',
     get_privacy_policy_url => 'privacy_policy_url',
@@ -25,7 +22,8 @@ Linux::Info::Distribution::OSRelease::Ubuntu - a subclass of Linux::Info::Distri
 
 =head1 DESCRIPTION
 
-This subclass extends the attributes available on the parent class.
+This subclass extends the attributes available on the parent class based on
+what Ubuntu makes available.
 
 See the methods to check which additional information is avaiable.
 
@@ -46,10 +44,9 @@ sub new {
     unlock_hash( %{$self} );
 
     my @attribs = (
-        'pretty_name',        'version_codename',
-        'id_like',            'home_url',
-        'support_url',        'bug_report_url',
-        'privacy_policy_url', 'ubuntu_codename',
+        'version_codename', 'support_url',
+        'bug_report_url',   'privacy_policy_url',
+        'ubuntu_codename',
     );
 
     foreach my $attrib (@attribs) {
@@ -62,23 +59,9 @@ sub new {
     return $self;
 }
 
-=head2 get_pretty_name
-
-Returns the "pretty" name of Ubuntu.
-
 =head2 get_version_codename
 
 Returns the Ubuntu codename for the released version.
-
-=head2 get_id_like
-
-Returns the ID of the Linux distribution from where Ubuntu is based on, i.e.,
-the string "debian".
-
-
-=head2 get_home_url
-
-Returns the home URL of Ubuntu.
 
 =head2 get_support_url
 

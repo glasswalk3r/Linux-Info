@@ -5,6 +5,11 @@ use strict;
 use Carp qw(confess);
 use parent 'Linux::Info::Distribution';
 use Hash::Util qw(lock_hash unlock_hash);
+use Class::XSAccessor getters => {
+    get_pretty_name => 'pretty_name',
+    get_id_like     => 'id_like',
+    get_home_url    => 'home_url',
+};
 
 use constant DEFAULT_FILE => '/etc/os-release';
 
@@ -97,6 +102,20 @@ sub new {
     unlock_hash( %{$self} );
     $self->{source} = $file_path;
     $self->{cache}  = $info_ref;
+
+    if ( exists $info_ref->{id_like} ) {
+        my @distros = split( /\s/, $info_ref->{id_like} );
+        $self->{id_like} = \@distros;
+        delete $info_ref->{id_like};
+    }
+    else {
+        $self->{id_like} = [];
+    }
+
+    foreach my $attrib (qw(pretty_name home_url)) {
+        $self->{$attrib} = $info_ref->{$attrib};
+    }
+
     lock_hash( %{$self} );
     return $self;
 }
@@ -110,6 +129,23 @@ Returns a string with the file path from where the information was retrieved.
 sub get_source {
     return shift->{source};
 }
+
+=head2 get_pretty_name
+
+Returns the "pretty" name of distribution, which is actually just a longer
+string than the name.
+
+=head2 get_id_like
+
+Returns an array reference containing the distribution ID of all distributions
+directly related to this one (a parent distribution, or siblings).
+
+Not all distributions will have such value, but a default empty array will be
+provided by this class.
+
+=head2 get_home_url
+
+Returns the home URL of distribution.
 
 =head1 EXPORTS
 

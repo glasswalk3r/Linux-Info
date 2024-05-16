@@ -6,10 +6,8 @@ my $class = 'Linux::Info::Distribution::OSRelease::Ubuntu';
 require_ok($class);
 
 my @fixtures = (
-    [ 'get_id_like',          'debian' ],
     [ 'get_pretty_name',      'Ubuntu 22.04.4 LTS' ],
     [ 'get_version_codename', 'jammy' ],
-    [ 'get_id_like',          'debian' ],
     [ 'get_home_url',         'https://www.ubuntu.com/' ],
     [ 'get_support_url',      'https://help.ubuntu.com/' ],
     [ 'get_bug_report_url',   'https://bugs.launchpad.net/ubuntu/' ],
@@ -30,5 +28,7 @@ foreach my $fixture (@fixtures) {
     my $method = $fixture->[0];
     is( $instance->$method, $fixture->[1], "$method works" );
 }
+
+is_deeply( $instance->get_id_like, ['debian'] );
 
 done_testing;
