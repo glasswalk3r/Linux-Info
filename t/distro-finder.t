@@ -1,7 +1,6 @@
 use warnings;
 use strict;
 use Test::More;
-use File::Temp qw(tempfile);
 
 use Linux::Info::Distribution::OSRelease;
 
@@ -76,14 +75,11 @@ is_deeply( $another->search_distro, $redhat,
 is( $another->has_custom, 1, 'found a Custom based file' )
   or diag( explain($another) );
 
-my ( $fh, $tmp_file ) = tempfile;
-close($fh);
-unlink $tmp_file;
-note("Forcing $dir as a custom config_dir and OSRelease with $tmp_file");
+note("Forcing $dir as a custom config_dir and OSRelease");
 my $other = $class->new();
 $other->set_config_dir($dir);
 my $result_ref =
-  $other->search_distro( Linux::Info::Distribution::OSRelease->new($tmp_file) );
+  $other->search_distro( Linux::Info::Distribution::OSRelease->new );
 
 is( ref($result_ref), 'HASH',
     'search_distro returns the expected reference type' )

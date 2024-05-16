@@ -61,17 +61,8 @@ The fields, stored as keys, will be forced to be on lowercase.
 
 =cut
 
-sub parse {
-    my $self = shift;
-    my $file_path;
-
-    # sub call
-    if ( ref($self) eq '' ) {
-        $file_path = shift || DEFAULT_FILE;
-    }
-    else {
-        $file_path = $self->{source} || DEFAULT_FILE;
-    }
+sub _parse {
+    my $file_path = shift;
 
     open my $in, '<', $file_path or confess "Cannot read $file_path: $!";
     my %data;
@@ -85,6 +76,35 @@ sub parse {
     return \%data;
 }
 
+=head2 parse
+
+Instance method. Parses a file with the expected format of F</etc/os-release>.
+
+=cut
+
+sub parse {
+    my $self = shift;
+    confess 'This is a instance method call, use parse_from_file instead'
+      unless ( ref $self ne '' );
+
+    $self->{source} = DEFAULT_FILE unless ( defined $self->{source} );
+    return _parse( $self->{source} );
+}
+
+=head2 parse_from_file
+
+Class method. Parses a file with the expected format of F</etc/os-release>.
+
+Optionally, accepts a string as the complete path to a file to be parsed.
+
+=cut
+
+sub parse_from_file {
+    return _parse( $_[1] )      if ( length( scalar(@_) ) == 2 );
+    return _parse(DEFAULT_FILE) if ( $_[0] eq __PACKAGE__ );
+    return _parse( $_[0] );
+}
+
 =head2 new
 
 Creates and returns a new instance.
@@ -95,10 +115,11 @@ to parse the file content.
 =cut
 
 sub new {
-    my $class     = shift;
-    my $file_path = shift || DEFAULT_FILE;
-    my $info_ref  = parse($file_path);
-    my $self      = $class->SUPER::new($info_ref);
+    my ( $class, $file_path ) = @_;
+    $file_path = DEFAULT_FILE unless ( defined $file_path );
+
+    my $info_ref = parse_from_file($file_path);
+    my $self     = $class->SUPER::new($info_ref);
     unlock_hash( %{$self} );
     $self->{source} = $file_path;
     $self->{cache}  = $info_ref;
