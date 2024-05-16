@@ -49,8 +49,11 @@ sub new {
     confess 'The hash reference is missing the "file_to_parse" key'
       unless ( exists $attribs_ref->{file_to_parse} );
 
+    # delaying definition until the file is parsed
     $attribs_ref->{version}    = undef;
     $attribs_ref->{version_id} = undef;
+    $attribs_ref->{name}       = $attribs_ref->{id};
+
     my $self = $class->SUPER::new($attribs_ref);
     unlock_hash( %{$self} );
     $self->{source} = $attribs_ref->{file_to_parse};

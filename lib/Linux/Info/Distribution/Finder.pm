@@ -79,6 +79,7 @@ sub _config_dir {
     return \@candidates;
 }
 
+# TODO: should return a well known data structure
 sub _search_release_file {
     my $self           = shift;
     my $candidates_ref = $self->_config_dir;
@@ -88,7 +89,7 @@ sub _search_release_file {
 
         if ( ( exists $release_files{$thing} ) and ( -f $file_path ) ) {
             $self->{release_info} = {
-                distro_id     => ( lc $release_files{$thing} ),
+                id            => ( lc $release_files{$thing} ),
                 file_to_parse => ($file_path),
             };
             last;

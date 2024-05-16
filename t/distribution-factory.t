@@ -10,7 +10,6 @@ can_ok( $class, qw(create new distro_name) );
 
 my $finder = Linux::Info::Distribution::Finder->new;
 $finder->set_config_dir('t/samples');
-
 my $instance = Linux::Info::Distribution::Factory->new($finder);
 isa_ok( $instance, $class );
 is(

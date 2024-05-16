@@ -44,8 +44,8 @@ sub create {
     unless ( exists $info_ref->{file_to_parse} ) {
         my $base_class = 'Linux::Info::Distribution::OSRelease';
 
-        if ( exists $distros{ $info_ref->{distro_id} } ) {
-            my $class = $base_class . '::' . $distros{ $self->{distro_id} };
+        if ( exists $distros{ $info_ref->{id} } ) {
+            my $class = $base_class . '::' . $distros{ $self->{id} };
             return $class->new($info_ref);
         }
         else {
@@ -53,23 +53,21 @@ sub create {
         }
     }
 
-    if ( exists $info_ref->{distro_id} ) {
+    if ( exists $info_ref->{id} ) {
         my $distro_name;
 
-        if ( exists $distros{ $info_ref->{distro_id} } ) {
-            $distro_name = $distros{ $info_ref->{distro_id} };
+        if ( exists $distros{ $info_ref->{id} } ) {
+            $distro_name = $distros{ $info_ref->{id} };
         }
         else {
-            confess( 'Do not know how to handle the distro_id '
-                  . $info_ref->{distro_id} );
+            confess( 'Do not know how to handle the id ' . $info_ref->{id} );
         }
 
         my $class = "Linux::Info::Distribution::Custom::$distro_name";
         return $class->new($info_ref);
     }
 
-    confess(
-        'Missing distro_id, do not know how to handle ' . Dumper($info_ref) );
+    confess( 'Missing id, do not know how to handle ' . Dumper($info_ref) );
 }
 
 1;

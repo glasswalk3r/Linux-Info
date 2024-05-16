@@ -63,7 +63,7 @@ is( ( scalar @{$config_dir_ref} ),
   or diag( explain($config_dir_ref) );
 
 my $redhat = {
-    distro_id     => 'redhat',
+    id            => 'redhat',
     file_to_parse => 't/samples/redhat_version',
 };
 is_deeply( $another->search_distro, $redhat,
