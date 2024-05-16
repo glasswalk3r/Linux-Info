@@ -7,8 +7,6 @@ require_ok($class);
 can_ok( $class, qw(parse get_source new) );
 isa_ok( $class, 'Linux::Info::Distribution' );
 ok( $class->DEFAULT_FILE, 'DEFAULT_FILE returns a value' );
-is( $class->get_source, $class->DEFAULT_FILE,
-    'get_source is an alias to DEFAULT_FILE' );
 is( ref( $class->parse ), 'HASH', 'class parse call works' );
 
 SKIP: {
@@ -17,6 +15,8 @@ SKIP: {
     my $obj = $class->new;
     ok( $obj, 'it is possible to create a new instance without arguments' );
     isa_ok( $obj, $class );
+    is( $obj->get_source, $class->DEFAULT_FILE,
+        'get_source is an alias to DEFAULT_FILE' );
 }
 
 my $fixture = 't/samples/os-release';
