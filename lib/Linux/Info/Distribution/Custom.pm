@@ -45,6 +45,10 @@ sub _parse_source {
 
 sub new {
     my ( $class, $attribs_ref ) = @_;
+
+    confess 'The hash reference is missing the "file_to_parse" key'
+      unless ( exists $attribs_ref->{file_to_parse} );
+
     $attribs_ref->{version}    = undef;
     $attribs_ref->{version_id} = undef;
     my $self = $class->SUPER::new($attribs_ref);

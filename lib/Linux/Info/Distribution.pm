@@ -34,7 +34,7 @@ sub new {
     my @expected = qw(name id version version_id);
 
     foreach my $key (@expected) {
-        confess "The hash reference is missing the key $key"
+        confess "The hash reference is missing the key '$key'"
           unless ( exists $params_ref->{$key} );
     }
 
