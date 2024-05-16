@@ -8,6 +8,7 @@ use Data::Dumper;
 
 use Linux::Info::Distribution::Custom::RedHat;
 use Linux::Info::Distribution::OSRelease::Ubuntu;
+use Linux::Info::Distribution::OSRelease::Rocky;
 
 # VERSION
 
@@ -78,6 +79,13 @@ on the several criterias to define the source and format of the data.
 Instances will be returned based on subclasses of
 L<Linux::Info::Distribution::OSRelease> or
 L<Linux::Info::Distribution::Custom>.
+
+The first attempt is to use the file F</etc/os-release> to fetch information.
+In this case, if a subclass of L<Linux::INfo::Distribution::OSRelease> is not
+available, this class will be used instead, which means less attributes will
+be available.
+
+If the file is not available, others will be attempted.
 
 =cut
 
