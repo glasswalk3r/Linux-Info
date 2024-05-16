@@ -8,56 +8,84 @@ use Linux::Info::Distribution::OSRelease;
 my $class = 'Linux::Info::Distribution::Finder';
 require_ok($class);
 can_ok( $class,
-    qw(new _config_dir _search_release_file search_distro distro_name ) );
+    qw(new _config_dir _search_release_file search_distro has_distro_info ) );
 ok( $class->new, 'constructor works' );
 
 my $instance = $class->new;
 isa_ok( $instance, $class );
 
+is( $instance->has_distro_info, 0, 'has_distro_info returns false' )
+  or diag( explain($instance) );
+
 SKIP: {
-    skip 'default file not available on the file system', 1
+    skip 'default file not available on the file system', 2
       unless ( -f Linux::Info::Distribution::OSRelease->DEFAULT_FILE );
     is( ref( $instance->search_distro ),
         'HASH', 'search_distro returns the expected value' );
+    ok( $instance->has_distro_info, 'has_distro_info returns true' )
+      or diag( explain($instance) );
 }
 
 my $fixture = 't/samples/os-release';
 note("Using custom file $fixture");
-is(
-    ref(
-        $instance->search_distro(
-            Linux::Info::Distribution::OSRelease->new($fixture)
-        )
+is_deeply(
+    $instance->search_distro(
+        Linux::Info::Distribution::OSRelease->new($fixture)
     ),
-    'HASH',
+    {
+        home_url           => 'https://www.ubuntu.com/',
+        id                 => 'ubuntu',
+        pretty_name        => 'Ubuntu 22.04.4 LTS',
+        name               => 'Ubuntu',
+        support_url        => 'https://help.ubuntu.com/',
+        ubuntu_codename    => 'jammy',
+        version_codename   => 'jammy',
+        bug_report_url     => 'https://bugs.launchpad.net/ubuntu/',
+        version            => '22.04.4 LTS (Jammy Jellyfish)',
+        version_id         => '22.04',
+        id_like            => 'debian',
+        privacy_policy_url =>
+          'https://www.ubuntu.com/legal/terms-and-policies/privacy-policy',
+    },
     'search_distro returns the expected value with custom OSRelease'
 );
 
-my ( $fh, $tmp_file ) = tempfile;
-close($fh);
-unlink $tmp_file;
 my $dir = 't/samples';
-note("Forcing $dir as a custom config_dir and OSRelease with $tmp_file");
-$instance->set_config_dir($dir);
-my $result_ref = $instance->search_distro(
-    Linux::Info::Distribution::OSRelease->new($tmp_file) );
-my $config_dir_ref = $instance->_config_dir;
+note("Forcing $dir as a custom config_dir");
+my $another = Linux::Info::Distribution::Finder->new;
+$another->set_config_dir($dir);
+my $config_dir_ref = $another->_config_dir;
+
 is( ref($config_dir_ref), 'ARRAY',
     '_config_dir returns the expected reference type' );
 is( ( scalar @{$config_dir_ref} ),
     1, '_config_dir returns the expected number of files' )
   or diag( explain($config_dir_ref) );
 
+my $redhat = {
+    distro_id     => 'redhat',
+    file_to_parse => 't/samples/redhat_version',
+};
+is_deeply( $another->search_distro, $redhat,
+    'a Finder with a custom config_dir should ignore /etc/os-release' );
+
+my ( $fh, $tmp_file ) = tempfile;
+close($fh);
+unlink $tmp_file;
+note("Forcing $dir as a custom config_dir and OSRelease with $tmp_file");
+my $other = $class->new();
+$other->set_config_dir($dir);
+my $result_ref =
+  $other->search_distro( Linux::Info::Distribution::OSRelease->new($tmp_file) );
+
 is( ref($result_ref), 'HASH',
     'search_distro returns the expected reference type' )
-  or diag( explain($instance) );
-is_deeply(
-    $result_ref,
-    {
-        distro_id     => 'redhat',
-        file_to_parse => 't/samples/redhat_version',
-    },
-    'earch_distro returns the expected value'
-) or diag( explain($result_ref) );
+  or diag( explain($other) );
+
+is_deeply( $result_ref, $redhat, 'search_distro returns a RedHat info' )
+  or diag( explain($result_ref) );
+
+ok( $other->has_distro_info, 'has_distro_info returns true' )
+  or diag( explain($other) );
 
 done_testing;

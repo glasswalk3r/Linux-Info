@@ -6,6 +6,7 @@ use Hash::Util qw(lock_hash);
 use Carp       qw(confess);
 use Class::XSAccessor setters => { set_config_dir => 'config_dir', };
 use File::Spec;
+use constant DEFAULT_CONFIG_DIR => '/etc';
 
 use Linux::Info::Distribution::OSRelease;
 
@@ -46,7 +47,7 @@ lock_hash(%release_files);
 
 sub new {
     my $class = shift;
-    my $self  = { config_dir => '/etc', release_info => undef };
+    my $self  = { config_dir => DEFAULT_CONFIG_DIR, release_info => undef };
     bless $self, $class;
     return $self;
 }
@@ -66,7 +67,6 @@ sub _config_dir {
 
     while ( readdir $dh ) {
         next if ( ( $_ eq '.' ) or ( $_ eq '..' ) );
-
         push( @candidates, ($_) )
           if (
             ( $_ =~ $version_regex )
@@ -102,17 +102,24 @@ sub search_distro {
 
     return $self->{release_info} if ( defined( $self->{release_info} ) );
 
-    return $os_release->parse if ( -r $os_release->get_source );
+    if ( $self->{config_dir} eq DEFAULT_CONFIG_DIR ) {
+        if ( -r $os_release->get_source ) {
+            $self->{release_info} = $os_release->parse;
+        }
+        else {
+            $self->_search_release_file;
+        }
+    }
+    else {
+        $self->_search_release_file;
+    }
 
-    $self->_search_release_file;
     return $self->{release_info};
 }
 
-sub distro_name {
+sub has_distro_info {
     my $self = shift;
-    return $self->{release_info}->{distro_name}
-      if ( defined( $self->{release_info} ) );
-    return undef;
+    return ( defined( $self->{release_info} ) ) ? 1 : 0;
 }
 
 1;
