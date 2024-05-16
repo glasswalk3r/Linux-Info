@@ -36,6 +36,14 @@ looking for creating a entirely new classes tree.
 Also, you probably want to use a factory class to create new instances instead
 doing it manually.
 
+The C<Linux::Info::Distribution> namespace started as a fork from
+L<Linux::Distribution> distribution, even with some code shared between both of
+them, although the API is very different.
+
+At the end, modules under the C<Linux::Info::Distribution> tries to rely more
+in the F</etc/os-release> file, which is more standardized and includes more
+information.
+
 =head1 METHODS
 
 =head2 new
