@@ -21,7 +21,7 @@ my @fixtures = (
 can_ok( $class, map { $_->[0] } @fixtures );
 
 isa_ok( $class, 'Linux::Info::Distribution::OSRelease' );
-my $instance = $class->new();
+my $instance = $class->new('t/samples/os-release');
 isa_ok( $instance, $class );
 
 foreach my $fixture (@fixtures) {

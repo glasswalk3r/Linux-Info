@@ -39,6 +39,30 @@ Returns a new instance of this class.
 Expects as an optional parameter the complete path to a file that will be used
 to retrieve data in the expected format.
 
+=cut
+
+sub new {
+    my ( $class, $file_path ) = @_;
+    my $self = $class->SUPER::new($file_path);
+    unlock_hash( %{$self} );
+
+    my @attribs = (
+        'platform_id',            'ansi_color',
+        'logo',                   'cpe_name',
+        'bug_report_url',         'support_end',
+        'rocky_support_product',  'rocky_support_product_version',
+        'redhat_support_product', 'redhat_support_product_version',
+    );
+
+    foreach my $attrib (@attribs) {
+        $self->{$attrib} = $self->{cache}->{$attrib};
+    }
+
+    $self->clean_cache;
+    lock_hash( %{$self} );
+    return $self;
+}
+
 =head2 get_platform_id
 
 Returns the string of platform ID.
