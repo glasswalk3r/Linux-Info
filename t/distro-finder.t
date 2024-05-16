@@ -8,7 +8,8 @@ use Linux::Info::Distribution::OSRelease;
 my $class = 'Linux::Info::Distribution::Finder';
 require_ok($class);
 can_ok( $class,
-    qw(new _config_dir _search_release_file search_distro has_distro_info ) );
+    qw(new _config_dir _search_release_file search_distro has_distro_info has_custom)
+);
 ok( $class->new, 'constructor works' );
 
 my $instance = $class->new;
@@ -23,6 +24,8 @@ SKIP: {
     is( ref( $instance->search_distro ),
         'HASH', 'search_distro returns the expected value' );
     ok( $instance->has_distro_info, 'has_distro_info returns true' )
+      or diag( explain($instance) );
+    is( $instance->has_custom, 0, 'found a OSRelease based file' )
       or diag( explain($instance) );
 }
 
@@ -49,6 +52,8 @@ is_deeply(
     },
     'search_distro returns the expected value with custom OSRelease'
 );
+is( $instance->has_custom, 0, 'found a OSRelease based file' )
+  or diag( explain($instance) );
 
 my $dir = 't/samples';
 note("Forcing $dir as a custom config_dir");
@@ -68,6 +73,8 @@ my $redhat = {
 };
 is_deeply( $another->search_distro, $redhat,
     'a Finder with a custom config_dir should ignore /etc/os-release' );
+is( $another->has_custom, 1, 'found a Custom based file' )
+  or diag( explain($another) );
 
 my ( $fh, $tmp_file ) = tempfile;
 close($fh);
@@ -84,6 +91,8 @@ is( ref($result_ref), 'HASH',
 
 is_deeply( $result_ref, $redhat, 'search_distro returns a RedHat info' )
   or diag( explain($result_ref) );
+is( $other->has_custom, 1, 'found a Custom based file' )
+  or diag( explain($other) );
 
 ok( $other->has_distro_info, 'has_distro_info returns true' )
   or diag( explain($other) );

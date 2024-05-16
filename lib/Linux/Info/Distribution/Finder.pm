@@ -123,4 +123,17 @@ sub has_distro_info {
     return ( defined( $self->{release_info} ) ) ? 1 : 0;
 }
 
+sub has_custom {
+    my $self = shift;
+
+    if (    ( defined( $self->{release_info} ) )
+        and ( exists $self->{release_info}->{file_to_parse} )
+        and ( defined $self->{release_info}->{file_to_parse} ) )
+    {
+        return 1;
+    }
+
+    return 0;
+}
+
 1;

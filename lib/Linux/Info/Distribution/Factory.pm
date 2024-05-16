@@ -40,8 +40,7 @@ sub create {
     my $self     = shift;
     my $info_ref = $self->{finder}->search_distro;
 
-    # TODO: create a method on Finder to define if it is custom or not
-    unless ( exists $info_ref->{file_to_parse} ) {
+    unless ( $self->{finder}->has_custom ) {
         my $base_class = 'Linux::Info::Distribution::OSRelease';
 
         if ( exists $distros{ $info_ref->{id} } ) {
