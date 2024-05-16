@@ -179,15 +179,31 @@ Returns the kernel flavour parameter.
 
 =head2 get_major
 
-From the version, returns the integer corresponding to the major number.
+Returns from the version, returns the integer corresponding to the major number.
 
 =head2 get_minor
 
-From the version, returns the integer corresponding to the minor number.
+Returns from the version, returns the integer corresponding to the minor number.
 
 =head2 get_patch
 
 From the version, returns the integer corresponding to the patch number.
+
+=head2 get_build_datetime
+
+Returns a string representing when the kernel was built.
+
+=head2 get_compiled_by
+
+Returns a string, representing the user who compiled the kernel.
+
+=head2 get_gcc_version
+
+Returns a string, representing gcc compiler version used to compile the kernel.
+
+=head2 get_type
+
+Returns a string, representing the features which define the kernel type.
 
 =cut
 

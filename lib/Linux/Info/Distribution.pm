@@ -18,10 +18,57 @@ use Class::XSAccessor getters => {
 
 =head1 NAME
 
-NAME="Ubuntu"
-VERSION_ID="22.04"
-VERSION="22.04.4 LTS (Jammy Jellyfish)"
-ID=ubuntu
+Linux::Info::Distribution - base class to handle Linux distribution information
+
+=head1 SYNOPSIS
+
+    my $distro = Linux::Info::Distribution-new({
+        name => 'Foobar',
+        version_id => '1.0',
+        version => '1.0 (Cool Name)',
+        id => 'foobar'
+    });
+
+=head1 DESCRIPTION
+
+This is a base class that defines the most basic information one could retrieve
+from a Linux distribution.
+
+You probably want to the take a look of subclasses of this classes, unless you
+looking for creating a entirely new classes tree.
+
+Also, you probably want to use a factory class to create new instances instead
+doing it manually.
+
+=head1 METHODS
+
+=head2 new
+
+Creates and returns new instance.
+
+Expects a hash reference with the following keys:
+
+=over
+
+=item *
+
+name: the distribution name
+
+=item *
+
+id: a more concise, short version of the distribution name, normally in all
+lowercase.
+
+=item *
+
+version: the long version identification of the distribution.
+
+=item *
+
+version_id: a shorter version of C<version>, generally with only numbers and
+dots, possible a semantic version number.
+
+=back
 
 =cut
 
@@ -49,5 +96,45 @@ sub new {
     lock_hash( %{$self} );
     return $self;
 }
+
+=head2 get_name
+
+A getter for the C<name> attribute.
+
+=head2 get_id
+
+A getter for the C<id> attribute.
+
+=head2 get_version
+
+A getter for the C<version> attribute.
+
+=head2 get_version_id
+
+A getter for the C<version_id> attribute.
+
+=head1 EXPORTS
+
+Nothing.
+
+=head1 SEE ALSO
+
+=over
+
+=item *
+
+L<Linux::Info::Distribution::Custom>
+
+=item *
+
+L<Linux::Info::Distribution::OSRelease>
+
+=item *
+
+L<Linux::Info::Distribution::Factory>
+
+=back
+
+=cut
 
 1;

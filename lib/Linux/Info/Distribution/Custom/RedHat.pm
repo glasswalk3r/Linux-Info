@@ -11,6 +11,47 @@ use Class::XSAccessor getters => {
 
 # VERSION
 
+=pod
+
+=head1 NAME
+
+Linux::Info::Distribution::Custom::RedHat - a subclass of Linux::Info::Distribution::Custom
+
+=head2 DESCRIPTION
+
+This class inherits and overrides the required modules from
+L<Linux::Info::Distribution::Custom::RedHat> parent class.
+
+It should be created automatically by the L<Linux::Info::Distribution::Factory>
+depending on the files availabity of the distribution where is being executed.
+
+Based on the file format, new fields will be available on this instance, added
+to those provided by the parent class.
+
+Check the methods to see what information is available.
+
+=head1 METHODS
+
+=head2 is_enterprise
+
+Returns "true" (1) or "false" (0) depending if this distribution if a
+"Enterprise" class of RedHat.
+
+=head2 get_type
+
+Returns a string meaning the type of the running distribution, which can be
+"Server" or "Workstation".
+
+=head2 get_codename
+
+Returns a string of the distribution version "codename" or alias.
+
+=head1 EXPORTS
+
+Nothing.
+
+=cut
+
 sub _set_regex {
     my $self = shift;
     $self->{regex} =

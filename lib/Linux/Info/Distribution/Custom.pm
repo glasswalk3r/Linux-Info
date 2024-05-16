@@ -10,6 +10,45 @@ use Class::XSAccessor getters =>
 
 # VERSION
 
+=pod
+
+=head1 NAME
+
+Linux::Info::Distribution::Custom - custom files data of a Linux distribution
+
+=head1 DESCRIPTION
+
+This class is a subclass of L<Linux::Info::Distribution>.
+
+It will provide basic interfaces for subclasses of it to handle the different
+variations of text file containing the distribution informations.
+
+Subclasses are required to override two "private" methods in order to inherit
+from this class:
+
+=over
+
+=item *
+
+C<_set_regex> sets the C<regex> attribute with the regular expression required
+to parse the file content (usually a single line). This expression must use
+named match groups to extract available information that is relevant.
+
+=item *
+
+C<_set_others> sets all other fields available on the subclass, which will have
+their values extracted from the match groups.
+
+This method will receive as a parameter a hash reference, which will contain the
+extract values using the regular expression groups, and such information should
+be used to build or be directly used in the subclass attributes.
+
+=back
+
+Both of those methods are invoked during the execution of C<new>.
+
+=cut
+
 sub _set_regex {
     confess 'Must be implemented by subclasses of ' . ref(shift);
 }
@@ -43,6 +82,18 @@ sub _parse_source {
     $self->_set_others( \%match_result );
 }
 
+=head1 METHODS
+
+=head2 new
+
+Creates and returns a new instance of this class.
+
+Expects as parameter a hash reference containing one single key which is
+C<file_to_parse>, which will be used to read the file that contains the
+expected information to be extracted from.
+
+=cut
+
 sub new {
     my ( $class, $attribs_ref ) = @_;
 
@@ -61,5 +112,21 @@ sub new {
     lock_hash( %{$self} );
     return $self;
 }
+
+=head2 get_source
+
+Returns a string with the complete path to the file that provided the
+distribution information.
+
+=head2 get_regex
+
+Returns the compiled regular expression created to parse this instance source
+file.
+
+=head1 EXPORTS
+
+Nothing.
+
+=cut
 
 1;
