@@ -41,9 +41,11 @@ sub get_source {
 
 sub new {
     my ( $class, $file_path ) = @_;
-    my $self = $class->SUPER::new( parse($file_path) );
+    my $info_ref = parse($file_path);
+    my $self     = $class->SUPER::new($info_ref);
     unlock_hash( %{$self} );
     $self->{source} = $file_path || DEFAULT_FILE;
+    $self->{cache}  = $info_ref;
     lock_hash( %{$self} );
     return $self;
 }
