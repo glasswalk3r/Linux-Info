@@ -5,8 +5,9 @@ use strict;
 use parent 'Linux::Info::Distribution::OSRelease';
 use Hash::Util qw(lock_hash unlock_hash);
 use Class::XSAccessor getters => {
-    get_bug_report_url => 'bug_report_url',
-    get_support_url    => 'support_url',
+    get_bug_report_url   => 'bug_report_url',
+    get_support_url      => 'support_url',
+    get_version_codename => 'version_codename',
 };
 
 =pod
@@ -38,7 +39,7 @@ sub new {
     my $self = $class->SUPER::new($file_path);
     unlock_hash( %{$self} );
 
-    my @attribs = ( 'bug_report_url', 'support_url', );
+    my @attribs = ( 'bug_report_url', 'support_url', 'version_codename' );
 
     foreach my $attrib (@attribs) {
         $self->{$attrib} = $self->{cache}->{$attrib};
@@ -56,6 +57,10 @@ Returns the URL for reporting bugs for this distribution.
 =head2 get_support_url
 
 Returns the URL for support on how to get support on this distribution.
+
+=head2 get_version_codename
+
+Returns a string with the codename associated with this distribution version.
 
 =cut
 
