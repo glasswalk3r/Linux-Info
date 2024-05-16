@@ -10,6 +10,8 @@ use Class::XSAccessor getters => {
     get_version_codename => 'version_codename',
 };
 
+# VERSION
+
 =pod
 
 =head1 NAME

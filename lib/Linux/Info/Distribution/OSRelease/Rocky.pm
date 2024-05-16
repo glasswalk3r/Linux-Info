@@ -17,6 +17,8 @@ use Class::XSAccessor getters => {
     get_redhat_support_product_version => 'redhat_support_product_version',
 };
 
+# VERSION
+
 =pod
 
 =head1 NAME
