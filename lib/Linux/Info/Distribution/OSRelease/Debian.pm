@@ -12,11 +12,7 @@ use Class::XSAccessor getters => {
 
 # VERSION
 
-=pod
-
-=head1 NAME
-
-Linux::Info::Distribution::OSRelease::Debian - a subclass of Linux::Info::Distribution::OSRelease
+# ABSTRACT: a subclass of Linux::Info::Distribution::OSRelease
 
 =head1 DESCRIPTION
 

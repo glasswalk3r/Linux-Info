@@ -11,11 +11,7 @@ use Linux::Info::Distribution::OSRelease::Ubuntu;
 
 # VERSION
 
-=pod
-
-=head1 NAME
-
-Linux::Info::Distribution::Factory - implements a factory for Distribution subclasses
+# ABSTRACT: implements a factory for Distribution subclasses
 
 =head1 SYNOPSIS
 

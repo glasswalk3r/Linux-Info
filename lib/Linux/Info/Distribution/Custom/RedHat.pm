@@ -11,11 +11,7 @@ use Class::XSAccessor getters => {
 
 # VERSION
 
-=pod
-
-=head1 NAME
-
-Linux::Info::Distribution::Custom::RedHat - a subclass of Linux::Info::Distribution::Custom
+# ABSTRACT: a subclass of Linux::Info::Distribution::Custom
 
 =head2 DESCRIPTION
 

@@ -12,11 +12,7 @@ use Linux::Info::Distribution::OSRelease;
 
 # VERSION
 
-=pod
-
-=head1 NAME
-
-Linux::Info::Distribution::Finder - class to search for candidate files
+# ABSTRACT: class to search for candidate files
 
 =head2 SYNOPSIS
 

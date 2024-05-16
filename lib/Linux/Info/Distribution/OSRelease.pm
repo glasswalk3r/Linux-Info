@@ -15,11 +15,7 @@ use constant DEFAULT_FILE => '/etc/os-release';
 
 # VERSION
 
-=pod
-
-=head1 NAME
-
-Linux::Info::Distribution::OSRelease - a subclass with data from /etc/os-release file
+# ABSTRACT: a subclass with data from /etc/os-release file
 
 =head1 SYNOPSIS
 

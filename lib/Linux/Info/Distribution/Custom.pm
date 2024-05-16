@@ -10,11 +10,7 @@ use Class::XSAccessor getters =>
 
 # VERSION
 
-=pod
-
-=head1 NAME
-
-Linux::Info::Distribution::Custom - custom files data of a Linux distribution
+# ABSTRACT: custom files data of a Linux distribution
 
 =head1 DESCRIPTION
 

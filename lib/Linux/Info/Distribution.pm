@@ -14,11 +14,7 @@ use Class::XSAccessor getters => {
 
 # VERSION
 
-=pod
-
-=head1 NAME
-
-Linux::Info::Distribution - base class to handle Linux distribution information
+# ABSTRACT: base class to handle Linux distribution information
 
 =head1 SYNOPSIS
 
