@@ -120,6 +120,8 @@ sub new {
         confess "$key key is invalid" unless $acceptable->has($key);
     }
 
+    # TODO: create a table to match the distribution ID and the regex to parse
+    # version string
     # if RedHat
     if ( ( exists $opts_ref->{version} ) and ( defined $opts_ref->{version} ) )
     {
