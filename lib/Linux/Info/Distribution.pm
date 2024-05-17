@@ -18,6 +18,8 @@ use Class::XSAccessor getters => {
 
 =head1 SYNOPSIS
 
+    # just an example, you probably want to use
+    # Linux::Info::Distribution::Factory instead
     my $distro = Linux::Info::Distribution-new({
         name => 'Foobar',
         version_id => '1.0',

@@ -35,6 +35,7 @@ my %distros = (
     rocky  => 'Rocky',
     ubuntu => 'Ubuntu',
     redhat => 'RedHat',
+    amazon => 'Amazon',
 );
 lock_hash(%distros);
 
