@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Test::Most 0.38;
-use Devel::CheckOS 2.01 qw(os_is);
+
 use constant CLASS     => 'Linux::Info::KernelRelease';
 use constant TEST_DESC => 'works for instance without mainline version';
 
@@ -52,14 +52,9 @@ my $instance = CLASS->new(
     }
 );
 isa_ok( $instance, CLASS );
-
-if ( os_is('Linux::Ubuntu') ) {
-    cmp_ok( $instance->get_patch, '>=', 0,
-        'get_patch returns the expected value' );
-}
-else {
-    is( $instance->get_patch, 0, 'get_major returns the expected value' );
-}
+cmp_ok( $instance->get_patch, '>=', 0,
+    'get_patch returns the expected value with mainline information' )
+  or diag( explain($instance) );
 
 is( $instance->get_compiled_by,    'brewbuilder@ls20-bc2-13.build.redhat.com' );
 is( $instance->get_gcc_version,    '4.1.2' );
