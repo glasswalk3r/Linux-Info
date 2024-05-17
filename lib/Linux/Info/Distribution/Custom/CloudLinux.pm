@@ -26,8 +26,6 @@ sub _set_regex {
 qr/(?<name>CloudLinux\sServer)\srelease\s(?<version>[\d\.]+)\s\((?<codename>[\w\s]+)\)/;
 }
 
-# CloudLinux Server release 5.11 (Vladislav Volkov)
-
 sub _set_others {
     my ( $self, $data_ref ) = @_;
     $self->{name}     = $data_ref->{name};
