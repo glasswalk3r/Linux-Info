@@ -7,6 +7,12 @@ use parent 'Linux::Info::Distribution::Custom';
 # VERSION
 # ABSTRACT: a subclass of Linux::Info::Distribution::Custom
 
+=head1 EXPORTS
+
+Nothing.
+
+=cut
+
 sub _set_regex {
     my $self = shift;
     $self->{regex} =

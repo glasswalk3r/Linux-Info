@@ -32,12 +32,13 @@ existing variations of subclass of L<Linux::Info::Distribution> subclasses.
 =cut
 
 my %os_release_distros = (
-    rocky  => 'Rocky',
-    ubuntu => 'Ubuntu',
-    redhat => 'RedHat',
-    rhel   => 'RedHat',
-    amazon => 'Amazon',
-    amzn   => 'Amazon',
+    rocky      => 'Rocky',
+    ubuntu     => 'Ubuntu',
+    redhat     => 'RedHat',
+    rhel       => 'RedHat',
+    amazon     => 'Amazon',
+    amzn       => 'Amazon',
+    CloudLinux => 'CloudLinux',
 );
 lock_hash(%os_release_distros);
 
