@@ -31,13 +31,15 @@ existing variations of subclass of L<Linux::Info::Distribution> subclasses.
 
 =cut
 
-my %distros = (
+my %os_release_distros = (
     rocky  => 'Rocky',
     ubuntu => 'Ubuntu',
     redhat => 'RedHat',
+    rhel   => 'RedHat',
     amazon => 'Amazon',
+    amzn   => 'Amazon',
 );
-lock_hash(%distros);
+lock_hash(%os_release_distros);
 
 =head1 METHODS
 
@@ -97,8 +99,8 @@ sub create {
     unless ( $self->{finder}->has_custom ) {
         my $base_class = 'Linux::Info::Distribution::OSRelease';
 
-        if ( exists $distros{ $info_ref->{id} } ) {
-            my $class = $base_class . '::' . $distros{ $self->{id} };
+        if ( exists $os_release_distros{ $info_ref->{id} } ) {
+            my $class = $base_class . '::' . $os_release_distros{ $self->{id} };
             return $class->new($info_ref);
         }
         else {
@@ -109,8 +111,8 @@ sub create {
     if ( exists $info_ref->{id} ) {
         my $distro_name;
 
-        if ( exists $distros{ $info_ref->{id} } ) {
-            $distro_name = $distros{ $info_ref->{id} };
+        if ( exists $os_release_distros{ $info_ref->{id} } ) {
+            $distro_name = $os_release_distros{ $info_ref->{id} };
         }
         else {
             confess( 'Do not know how to handle the id ' . $info_ref->{id} );
