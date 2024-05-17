@@ -64,6 +64,7 @@ sub _parse {
     my %data;
     while (<$in>) {
         chomp;
+        next if $_ eq '';
         my @pieces = split( '=', $_ );
         $pieces[1] =~ tr/"//d;
         $data{ ( lc $pieces[0] ) } = $pieces[1];
