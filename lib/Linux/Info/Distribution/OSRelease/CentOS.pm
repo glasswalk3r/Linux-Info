@@ -64,6 +64,10 @@ Returns the string of the respective ANSI color code.
 
 Returns the CPE name.
 
+=head2 get_bug_report_url
+
+Returns the URL of the website to report bugs.
+
 =head2 get_centos_mantisbt_project
 
 Returns the CentOS Mantis Bug Tracker project.
