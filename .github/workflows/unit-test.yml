@@ -13,6 +13,12 @@ jobs:
   prove:
     name: Test::More prove CLI execution
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform:
+          - alpine
+          - debian
+          - rockylinux
     steps:
       - name: Checkout
         uses: actions/checkout@v4.1.4
