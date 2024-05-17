@@ -40,6 +40,7 @@ my %os_release_distros = (
     amzn       => 'Amazon',
     CloudLinux => 'CloudLinux',
     centos     => 'CentOS',
+    alpine     => 'Alpine',
 );
 lock_hash(%os_release_distros);
 

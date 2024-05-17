@@ -116,7 +116,11 @@ sub new {
     $file_path = DEFAULT_FILE unless ( defined $file_path );
 
     my $info_ref = parse_from_file($file_path);
-    my $self     = $class->SUPER::new($info_ref);
+
+    # WORKAROUND: Alpine doesn't provide that
+    $info_ref->{version} = undef unless ( exists $info_ref->{version} );
+
+    my $self = $class->SUPER::new($info_ref);
     unlock_hash( %{$self} );
     $self->{source} = $file_path;
     $self->{cache}  = $info_ref;
