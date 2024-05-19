@@ -1,4 +1,4 @@
-package Linux::Info::Distribution::Finder;
+package Linux::Info::DistributionFinder;
 
 use warnings;
 use strict;
@@ -16,8 +16,8 @@ use Linux::Info::Distribution::OSRelease;
 
 =head2 SYNOPSIS
 
-    use Linux::Info::Distribution::Finder;
-    my $finder = Linux::Info::Distribution::Finder->new;
+    use Linux::Info::DistributionFinder;
+    my $finder = Linux::Info::DistributionFinder->new;
     my $info_ref = $finder->search_distro;
 
 =head3 DESCRIPTION
@@ -215,7 +215,7 @@ sub has_custom {
 
 Nothing.
 
-You can use C<Linux::Info:Distribution::Finder::DEFAULT_CONFIG_DIR> to fetch
+You can use C<Linux::Info:DistributionFinder::DEFAULT_CONFIG_DIR> to fetch
 the default directory used to search for distribution information.
 
 =cut

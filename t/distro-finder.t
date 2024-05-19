@@ -4,7 +4,7 @@ use Test::More;
 
 use Linux::Info::Distribution::OSRelease;
 
-my $class = 'Linux::Info::Distribution::Finder';
+my $class = 'Linux::Info::DistributionFinder';
 require_ok($class);
 can_ok( $class,
     qw(new _config_dir _search_release_file search_distro has_distro_info has_custom)
@@ -56,7 +56,7 @@ is( $instance->has_custom, 0, 'found a OSRelease based file' )
 
 my $dir = 't/samples';
 note("Forcing $dir as a custom config_dir");
-my $another = Linux::Info::Distribution::Finder->new;
+my $another = Linux::Info::DistributionFinder->new;
 $another->set_config_dir($dir);
 my $config_dir_ref = $another->_config_dir;
 
