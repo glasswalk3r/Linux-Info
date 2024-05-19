@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 28;
+use Test::More tests => 27;
 use Scalar::Util qw(looks_like_number);
 use Devel::CheckOS 2.01 qw(os_is);
 
@@ -18,7 +18,7 @@ my @methods = (
     'get_uptime',           'get_idletime',
     'is_multithread',       'get_model',
     'get_mainline_version', 'has_multithread',
-    'get_detailed_kernel',  'get_basic_kernel',
+    'get_detailed_kernel',
 );
 can_ok( $obj, @methods );
 
@@ -71,9 +71,6 @@ SKIP: {
     ok( $kernel->get_abi_bump,
         'get_abi_bump returns a defined value from KernelRelease instance' );
 }
-
-$kernel = $obj->get_basic_kernel;
-isa_ok( $kernel, 'Linux::Info::KernelRelease' );
 
 note(
 'tests implemented due report http://www.cpantesters.org/cpan/report/9ae1c364-7671-11e5-aad0-c5a10b3facc5'

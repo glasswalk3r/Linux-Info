@@ -283,24 +283,6 @@ sub get_detailed_kernel {
     );
 }
 
-=head2 get_basic_kernel
-
-Returns an instance of L<Linux::Info::KernelRelease> with the minimum
-information required to.
-
-Should be faster to fetch if extended information is not required or you just
-need to compare Linux kernel versions.
-
-=cut
-
-sub get_basic_kernel {
-    return Linux::Info::KernelRelease->new(
-        {
-            release => shift->get_release,
-        }
-    );
-}
-
 sub _set_common {
     my $self  = shift;
     my $class = ref($self);
