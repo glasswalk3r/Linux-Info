@@ -18,7 +18,7 @@ use Class::XSAccessor getters => {
 This class inherits and overrides the required modules from
 L<Linux::Info::Distribution::Custom::RedHat> parent class.
 
-It should be created automatically by the L<Linux::Info::Distribution::Factory>
+It should be created automatically by the L<Linux::Info::DistributionFactory>
 depending on the files availabity of the distribution where is being executed.
 
 Based on the file format, new fields will be available on this instance, added

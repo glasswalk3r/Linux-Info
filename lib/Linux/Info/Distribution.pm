@@ -19,7 +19,7 @@ use Class::XSAccessor getters => {
 =head1 SYNOPSIS
 
     # just an example, you probably want to use
-    # Linux::Info::Distribution::Factory instead
+    # Linux::Info::DistributionFactory instead
     my $distro = Linux::Info::Distribution-new({
         name => 'Foobar',
         version_id => '1.0',
@@ -137,7 +137,7 @@ L<Linux::Info::Distribution::OSRelease>
 
 =item *
 
-L<Linux::Info::Distribution::Factory>
+L<Linux::Info::DistributionFactory>
 
 =back
 

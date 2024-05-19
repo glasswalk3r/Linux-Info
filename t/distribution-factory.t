@@ -1,16 +1,16 @@
 use warnings;
 use strict;
 use Test::More;
-use Linux::Info::Distribution::Finder;
+use Linux::Info::DistributionFinder;
 
-my $class = 'Linux::Info::Distribution::Factory';
+my $class = 'Linux::Info::DistributionFactory';
 
 require_ok($class);
 can_ok( $class, qw(create new distro_name) );
 
-my $finder = Linux::Info::Distribution::Finder->new;
+my $finder = Linux::Info::DistributionFinder->new;
 $finder->set_config_dir('t/samples');
-my $instance = Linux::Info::Distribution::Factory->new($finder);
+my $instance = Linux::Info::DistributionFactory->new($finder);
 isa_ok( $instance, $class );
 is(
     $instance->distro_name,
