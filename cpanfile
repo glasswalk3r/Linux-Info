@@ -17,7 +17,7 @@ requires "parent" => "0";
 requires "perl" => "5.012000";
 
 on 'test' => sub {
-  requires "Devel::CheckOS" => "2.01";
+  requires "Devel::CheckOS" => "2.02";
   requires "Exporter" => "0";
   requires "File::Temp" => "0";
   requires "Scalar::Util" => "0";
