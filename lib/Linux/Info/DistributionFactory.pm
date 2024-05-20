@@ -7,9 +7,19 @@ use Carp       qw(confess);
 use Data::Dumper;
 
 use Linux::Info::DistributionFinder;
+
+use Linux::Info::Distribution::Custom::Amazon;
+use Linux::Info::Distribution::Custom::CentOS;
+use Linux::Info::Distribution::Custom::CloudLinux;
 use Linux::Info::Distribution::Custom::RedHat;
-use Linux::Info::Distribution::OSRelease::Ubuntu;
+
+use Linux::Info::Distribution::OSRelease::Alpine;
+use Linux::Info::Distribution::OSRelease::Amazon;
+use Linux::Info::Distribution::OSRelease::CentOS;
+use Linux::Info::Distribution::OSRelease::Debian;
+use Linux::Info::Distribution::OSRelease::RedHat;
 use Linux::Info::Distribution::OSRelease::Rocky;
+use Linux::Info::Distribution::OSRelease::Ubuntu;
 
 # VERSION
 
