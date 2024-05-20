@@ -59,8 +59,18 @@ sub _set_proc_ver_regex {
 
 sub _parse_proc_ver {
     my $self = shift;
-    my $line = $self->{source}->get_version;
-    $self->{raw} = $line;
+    my $line;
+
+    if ( defined $self->{raw} ) {
+        $line = $self->{raw};
+    }
+    elsif ( defined $self->{source} ) {
+        $line = $self->{source}->get_version;
+        $self->{raw} = $line;
+    }
+    else {
+        confess 'Inconsistent object state: no raw string or source to use';
+    }
 
     if ( $line =~ $self->{proc_regex} ) {
 
@@ -97,8 +107,29 @@ sub _parse_version {
 
 Creates a new instance.
 
-Optionally, it might receive a string as parameter like the kernel release
-information from (F</proc/sys/kernel/osrelease>).
+Optionally, it might receive the following arguments:
+
+=over
+
+=item 1.
+
+A string as parameter like the kernel release information from
+F</proc/sys/kernel/osrelease>.
+
+=item 2.
+
+A instance of L<Linux::Info::KernelSource>.
+
+=back
+
+The string, if defined, will always have preference to setup the version based
+on it and the instance passed will be ignored.
+
+If you want to use L<Linux::Info::KernelSource>, be sure to pass C<undef> as
+the first argument.
+
+If none arguments are passed, a new instance of L<Linux::Info::KernelSource>
+will be created, and the default locations of files to parsed will be used.
 
 This method will also invoke the C<_set_proc_ver_regex> method, used to
 parse the string at F</proc/version>. Subclasses must override this method,
@@ -110,33 +141,35 @@ sub new {
     my ( $class, $release, $source ) = @_;
     my $self = {};
     bless $self, $class;
-    my $source_class = 'Linux::Info::KernelSource';
 
-    if ( defined($source) ) {
-        confess "Must receive a instance of $source_class"
-          unless ( ( ref $source ne '' )
-            and ( $source->isa($source_class) ) );
+    if ( defined($release) ) {
+        confess "The string for release '$release' is invalid"
+          unless ( $release =~ $version_regex );
+        $self->{raw} = $release;
+        $self->_parse_version($release);
+        $self->{source} = undef;
     }
     else {
-        $source = $source_class->new;
-    }
+        my $source_class = 'Linux::Info::KernelSource';
+        if ( defined($source) ) {
+            confess "Must receive a instance of $source_class"
+              unless ( ( ref $source ne '' )
+                and ( $source->isa($source_class) ) );
+        }
+        else {
+            $source = $source_class->new;
+        }
 
-    $self->{source} = $source;
-
-    unless ( defined($release) ) {
+        $self->{source} = $source;
         $self->_set_proc_ver_regex;
 
         if ( defined( $self->{proc_regex} ) ) {
             $self->_parse_proc_ver;
         }
-    }
-    else {
-        confess "The string for release '$release' is invalid"
-          unless ( $release =~ $version_regex );
-        $self->{raw} = $release;
+
+        $self->_parse_version( $self->{source}->get_sys_osrelease );
     }
 
-    $self->_parse_version( $self->{source}->get_sys_osrelease );
     return $self;
 }
 
