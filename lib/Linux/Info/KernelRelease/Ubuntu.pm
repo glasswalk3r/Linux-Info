@@ -30,12 +30,9 @@ qr/^Ubuntu\s\d\.\d\.\d\-(\d+)\.(\d+)\~\d+\.\d+\.\d+\-(\w+)\s(\d+\.\d+\.\d+)$/;
     $self->{abi_bump} = $1;
     $self->{upload}   = $2;
     $self->{flavour}  = $3;
-    my $old_raw = $self->{raw};
 
     # this match provides the patch number
-    $self->{raw} = $4;
-    $self->_parse_version;
-    $self->{raw} = $old_raw;
+    $self->_parse_version($4);
 }
 
 =head1 METHODS
