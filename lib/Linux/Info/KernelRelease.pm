@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use Carp qw(confess carp);
 use Set::Tiny 0.04;
+use Linux::Info::KernelSource;
 use Class::XSAccessor getters => {
     get_raw            => 'raw',
     get_major          => 'major',
@@ -58,12 +59,7 @@ sub _set_proc_ver_regex {
 
 sub _parse_proc_ver {
     my $self = shift;
-    my $file = '/proc/version';
-    open( my $in, '<', $file ) or confess "Cannot read $file: $!";
-    my $line = <$in>;
-    chomp $line;
-    close($in) or confess "Cannot close $file: $!";
-
+    my $line = $self->{source}->get_version;
     $self->{raw} = $line;
 
     if ( $line =~ $self->{proc_regex} ) {
@@ -111,9 +107,21 @@ since this class won't know how to do it.
 =cut
 
 sub new {
-    my ( $class, $release ) = @_;
+    my ( $class, $release, $source ) = @_;
     my $self = {};
     bless $self, $class;
+    my $source_class = 'Linux::Info::KernelSource';
+
+    if ( defined($source) ) {
+        confess "Must receive a instance of $source_class"
+          unless ( ( ref $source eq 'HASH' )
+            and ( $source->isa($source_class) ) );
+    }
+    else {
+        $source = $source_class->new;
+    }
+
+    $self->{source} = $source;
 
     unless ( defined($release) ) {
         $self->_set_proc_ver_regex;
@@ -122,12 +130,7 @@ sub new {
             $self->_parse_proc_ver;
         }
         else {
-            my $file = '/proc/sys/kernel/osrelease';
-            open( my $in, '<', $file ) or confess "Cannot read $file: $!";
-            $release = <$in>;
-            chomp $release;
-            close($in) or confess "Cannot close $file: $!";
-            $self->{raw} = $release;
+            $self->{raw} = $source->get_sys_version;
         }
     }
     else {

@@ -18,6 +18,14 @@ sub _set_proc_ver_regex {
 qr/^Linux\sversion\s(?<version>[\w\._-]+)\s\((?<compiled_by>[\w\.\-\@]+)\)\s\(gcc\sversion\s(?<gcc_version>[\d\.]+).*\)\s#1\s(?<type>\w+)\s(?<build_datetime>.*)/;
 }
 
+=head2 new
+
+Overrides parent method, introducing the parsing of content from the
+corresponding L<Linux::Info::KernelSource> C<get_version_signature> method
+string returns.
+
+=cut
+
 sub new {
     my $class = shift;
     my $self  = $class->SUPER::new;

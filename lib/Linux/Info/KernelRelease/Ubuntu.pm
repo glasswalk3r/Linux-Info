@@ -17,19 +17,7 @@ use Class::XSAccessor getters => {
 
 sub _parse_ver_sig {
     my $self = shift;
-
-    my $source = '/proc/version_signature';
-    my $line;
-
-    if ( -r $source ) {
-        open( my $in, '<', $source ) or confess("Cannot read $source: $!");
-        $line = <$in>;
-        chomp $line;
-        close($in) or confess("Cannot close $source: $!");
-    }
-    else {
-        confess "Missing $source, which is supposed to exists on Ubuntu!";
-    }
+    my $line = $self->{source}->get_version_signature;
 
     # <base kernel version>-<ABI number>.<upload number>-<flavour>
     # Ubuntu 6.5.0-35.35~22.04.1-generic 6.5.13
@@ -49,6 +37,16 @@ qr/^Ubuntu\s\d\.\d\.\d\-(\d+)\.(\d+)\~\d+\.\d+\.\d+\-(\w+)\s(\d+\.\d+\.\d+)$/;
     $self->_parse_version;
     $self->{raw} = $old_raw;
 }
+
+=head1 METHODS
+
+=head2 new
+
+Overrides parent method, introducing the parsing of content from the
+corresponding L<Linux::Info::KernelSource> C<get_version_signature> method
+string returns.
+
+=cut
 
 sub new {
     my $class = shift;
@@ -81,16 +79,6 @@ Returns the upload number.
 =head2 get_sig_raw
 
 Returns the raw information from F</proc/version_signature>.
-
-=head1 SEE ALSO
-
-=over
-
-=item *
-
-https://ubuntu.com/kernel
-
-=back
 
 =cut
 

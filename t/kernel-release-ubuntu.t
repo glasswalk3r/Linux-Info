@@ -2,13 +2,26 @@ use strict;
 use warnings;
 use Test::Most 0.38;
 
-use constant CLASS     => 'Linux::Info::KernelRelease::Ubuntu';
-use constant TEST_DESC => 'works for instance without mainline version';
+use Linux::Info::KernelSource;
+
+use constant CLASS => 'Linux::Info::KernelRelease::Ubuntu';
 
 require_ok(CLASS);
 can_ok( CLASS, ( 'get_abi_bump', 'get_flavour', 'get_upload', 'get_sig_raw' ) );
 
-my $instance = CLASS->new;
+my $source_dir = 't/samples/kernel/ubuntu';
+my $source     = Linux::Info::KernelSource->new(
+    {
+        sys_version       => "$source_dir/sys_version",
+        version           => "$source_dir/version",
+        version_signature => "$source_dir/signature",
+    }
+);
+
+note('Testing instance with the following KernelSource:');
+diag( explain($source) );
+
+my $instance = CLASS->new( undef, $source );
 isa_ok( $instance, CLASS );
 
 my $raw_line = <<EOT;
