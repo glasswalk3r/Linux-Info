@@ -33,7 +33,7 @@ string returns.
 
 sub new {
     my $class = shift;
-    my $self  = $class->SUPER::new;
+    my $self  = $class->SUPER::new(@_);
 
     # 2.6.18-92.el5
     my $regex = qr/^\d+\.\d+\.\d+\-(\d+)\.(\w+)$/;
