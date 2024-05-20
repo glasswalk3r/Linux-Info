@@ -12,7 +12,7 @@ can_ok( CLASS, ( 'get_abi_bump', 'get_flavour', 'get_upload', 'get_sig_raw' ) );
 my $source_dir = 't/samples/kernel/ubuntu';
 my $source     = Linux::Info::KernelSource->new(
     {
-        sys_version       => "$source_dir/sys_version",
+        sys_osrelease     => "$source_dir/sys_osrelease",
         version           => "$source_dir/version",
         version_signature => "$source_dir/signature",
     }
@@ -24,17 +24,11 @@ diag( explain($source) );
 my $instance = CLASS->new( undef, $source );
 isa_ok( $instance, CLASS );
 
-my $raw_line = <<EOT;
-Linux version 6.5.0-35-generic (buildd\@lcy02-amd64-079) (x86_64-linux-gnu-gcc-12
-(Ubuntu 12.3.0-1ubuntu1~22.04) 12.3.0, GNU ld (GNU Binutils for Ubuntu) 2.38)
-#35~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Tue May  7 09:00:52 UTC 2
-EOT
-
 my @fixtures = (
     [ 'get_abi_bump',       35 ],
     [ 'get_flavour',        'generic' ],
     [ 'get_upload',         35 ],
-    [ 'get_raw',            join( ' ', split( /\n/, $raw_line ) ) ],
+    [ 'get_raw',            $source->get_version ],
     [ 'get_sig_raw',        'Ubuntu 6.5.0-35.35~22.04.1-generic 6.5.13' ],
     [ 'get_major',          6 ],
     [ 'get_minor',          5 ],
