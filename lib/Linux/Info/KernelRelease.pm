@@ -85,7 +85,7 @@ my $version_regex = qr/^(\d+)\.(\d+)\.(\d+)/;
 
 sub _parse_version {
     my $self = shift;
-    $self->{raw} =~ $version_regex;
+    $self->{source}->get_sys_osrelease =~ $version_regex;
     $self->{major} = $1;
     $self->{minor} = $2;
     $self->{patch} = $3;
@@ -114,7 +114,7 @@ sub new {
 
     if ( defined($source) ) {
         confess "Must receive a instance of $source_class"
-          unless ( ( ref $source eq 'HASH' )
+          unless ( ( ref $source ne '' )
             and ( $source->isa($source_class) ) );
     }
     else {
@@ -128,9 +128,6 @@ sub new {
 
         if ( defined( $self->{proc_regex} ) ) {
             $self->_parse_proc_ver;
-        }
-        else {
-            $self->{raw} = $source->get_sys_version;
         }
     }
     else {
