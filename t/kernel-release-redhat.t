@@ -12,9 +12,8 @@ can_ok( CLASS, ( 'get_revision', 'get_distro_info', ) );
 my $source_dir = 't/samples/kernel/redhat';
 my $source     = Linux::Info::KernelSource->new(
     {
-        sys_osrelease     => "$source_dir/sys_osrelease",
-        version           => "$source_dir/version",
-        version_signature => "$source_dir/signature",
+        sys_osrelease => "$source_dir/sys_osrelease",
+        version       => "$source_dir/version",
     }
 );
 
