@@ -60,7 +60,6 @@ sub new {
     my $finder_class = 'Linux::Info::DistributionFinder';
 
     if ( defined($finder) ) {
-
         confess "You must pass a instance of $finder_class"
           unless ( ( ref $finder ne '' ) and ( $finder->isa($finder_class) ) );
     }

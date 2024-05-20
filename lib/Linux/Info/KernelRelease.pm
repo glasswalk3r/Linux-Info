@@ -67,11 +67,15 @@ sub _parse_proc_ver {
     $self->{raw} = $line;
 
     if ( $line =~ $self->{proc_regex} ) {
-        foreach
-          my $attrib (qw(compiled_by gcc_version type build_datetime version))
-        {
-            $self->{$attrib} = $+{$attrib};
+
+        my @required = qw(compiled_by gcc_version type build_datetime version);
+
+        foreach my $key (@required) {
+            confess "Missing '$key' in the regex match groups"
+              unless ( exists $+{$key} );
         }
+
+        map { $self->{$_} = $+{$_} } ( keys %+ );
     }
     else {
         confess(
@@ -81,7 +85,7 @@ sub _parse_proc_ver {
 
 # regex must be relaxed because distros can put anything after the first three
 # digits
-my $version_regex = qr/^(\d+)\.(\d+)\.(\d+)\-\d+/;
+my $version_regex = qr/^(\d+)\.(\d+)\.(\d+)/;
 
 sub _parse_version {
     my $self = shift;
@@ -102,7 +106,7 @@ information from (F</proc/sys/kernel/osrelease>).
 
 This method will also invoke the C<_set_proc_ver_regex> method, used to
 parse the string at F</proc/version>. Subclasses must override this method,
-since this class won't know how to do it properly.
+since this class won't know how to do it.
 
 =cut
 
@@ -235,10 +239,6 @@ use overload
 =head1 SEE ALSO
 
 =over
-
-=item *
-
-https://ubuntu.com/kernel
 
 =item *
 
