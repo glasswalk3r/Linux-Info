@@ -59,9 +59,11 @@ The fields, stored as keys, will be forced to be on lowercase.
 
 sub _parse {
     my $file_path = shift;
+    confess 'must be a scalar (string)' unless ( ref $file_path eq '' );
 
-    open my $in, '<', $file_path or confess "Cannot read $file_path: $!";
+    open( my $in, '<', $file_path ) or confess "Cannot read $file_path: $!";
     my %data;
+
     while (<$in>) {
         chomp;
         next if $_ eq '';
@@ -69,6 +71,7 @@ sub _parse {
         $pieces[1] =~ tr/"//d;
         $data{ ( lc $pieces[0] ) } = $pieces[1];
     }
+
     close $in or confess "Cannot close $file_path: $!";
     return \%data;
 }

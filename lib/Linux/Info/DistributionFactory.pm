@@ -6,6 +6,7 @@ use Hash::Util qw(lock_hash lock_keys);
 use Carp       qw(confess);
 use Data::Dumper;
 
+use Linux::Info::DistributionFinder;
 use Linux::Info::Distribution::Custom::RedHat;
 use Linux::Info::Distribution::OSRelease::Ubuntu;
 use Linux::Info::Distribution::OSRelease::Rocky;
@@ -58,8 +59,14 @@ sub new {
     my ( $class, $finder ) = @_;
     my $finder_class = 'Linux::Info::DistributionFinder';
 
-    confess "You must pass a instance of $finder_class"
-      unless ( ( ref $finder ne '' ) and ( $finder->isa($finder_class) ) );
+    if ( defined($finder) ) {
+
+        confess "You must pass a instance of $finder_class"
+          unless ( ( ref $finder ne '' ) and ( $finder->isa($finder_class) ) );
+    }
+    else {
+        $finder = $finder_class->new;
+    }
 
     my $self = { finder => $finder, };
     bless $self, $class;
@@ -103,8 +110,9 @@ sub create {
         my $base_class = 'Linux::Info::Distribution::OSRelease';
 
         if ( exists $os_release_distros{ $info_ref->{id} } ) {
-            my $class = $base_class . '::' . $os_release_distros{ $self->{id} };
-            return $class->new($info_ref);
+            my $class =
+              $base_class . '::' . $os_release_distros{ $info_ref->{id} };
+            return $class->new( $info_ref->{file_path} );
         }
         else {
             return $base_class->new($info_ref);
