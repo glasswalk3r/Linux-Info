@@ -192,8 +192,7 @@ sub new {
         and ( defined $opts_ref->{current_kernel} ) )
     {
         $self->{current_kernel} =
-          Linux::Info::KernelRelease->new(
-            { release => $opts_ref->{current_kernel} } );
+          Linux::Info::KernelRelease->new( $opts_ref->{current_kernel} );
     }
 
     bless $self, $class;

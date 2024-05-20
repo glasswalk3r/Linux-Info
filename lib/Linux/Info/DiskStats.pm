@@ -393,11 +393,8 @@ sub new {
     }
 
     unless ( exists $self->{parse_method} ) {
-        if (
-            $self->{current} >= Linux::Info::KernelRelease->new(
-                { release => '2.6.18-0-generic' }
-            )
-          )
+        if ( $self->{current} >=
+            Linux::Info::KernelRelease->new('2.6.18-0-generic') )
         {
             $self->{parse_method} = \&_parse_ssd;
         }
