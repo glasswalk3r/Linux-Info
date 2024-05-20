@@ -6,28 +6,27 @@ use POSIX 1.15;
 use Hash::Util qw(lock_keys);
 use Class::XSAccessor
   getters => {
-    get_raw_time         => 'raw_time',
-    get_hostname         => 'hostname',
-    get_domain           => 'domain',
-    get_kernel           => 'kernel',
-    get_release          => 'release',
-    get_version          => 'version',
-    get_mem              => 'mem',
-    get_swap             => 'swap',
-    get_pcpucount        => 'pcpucount',
-    get_tcpucount        => 'tcpucount',
-    get_interfaces       => 'interfaces',
-    get_arch             => 'arch',
-    get_proc_arch        => 'proc_arch',
-    get_cpu_flags        => 'cpu_flags',
-    get_uptime           => 'uptime',
-    get_idletime         => 'idletime',
-    get_model            => 'model',
-    get_mainline_version => 'mainline_version',
+    get_raw_time   => 'raw_time',
+    get_hostname   => 'hostname',
+    get_domain     => 'domain',
+    get_kernel     => 'kernel',
+    get_release    => 'release',
+    get_version    => 'version',
+    get_mem        => 'mem',
+    get_swap       => 'swap',
+    get_pcpucount  => 'pcpucount',
+    get_tcpucount  => 'tcpucount',
+    get_interfaces => 'interfaces',
+    get_arch       => 'arch',
+    get_proc_arch  => 'proc_arch',
+    get_cpu_flags  => 'cpu_flags',
+    get_uptime     => 'uptime',
+    get_idletime   => 'idletime',
+    get_model      => 'model',
   },
   exists_predicates => { has_multithread => 'multithread', };
 
-use Linux::Info::KernelRelease;
+use Linux::Info::KernelFactory;
 
 # VERSION
 
@@ -129,8 +128,8 @@ Returns the host domain name.
 
 Returns the kernel name (just a string).
 
-See C<get_basic_kernel> and C<get_detailed_kernel> for a instance of
-L<Linux::Info::KernelRelease>.
+See C<get_detailed_kernel> for a instance of L<Linux::Info::KernelRelease> or
+subclasses of it.
 
 =head2 get_release
 
@@ -179,11 +178,7 @@ enabled or not.
 
 =head2 get_model
 
-Returns the processor name and model
-
-=head2 get_mainline_version
-
-Returns the mainline version of the Kernel. Not available on all Linux distributions.
+Returns the processor name and model.
 
 =head2 get_raw_time
 
@@ -191,23 +186,6 @@ Returns "true" (1) or "false" (0) if the instance is enabled to present time
 attributes with their original (raw) format, or formatted ones.
 
 =cut
-
-sub _mainline {
-    my $self   = shift;
-    my $source = '/proc/version_signature';
-
-    # this is specific to Ubuntu Linux
-    if ( -r $source ) {
-        open( my $in, '<', $source ) or confess("Cannot read $source: $!");
-        my $raw = <$in>;
-        close($in) or confess("Cannot close $source: $!");
-        my @pieces = split( /\s/, $raw );
-        $self->{mainline_version} = $pieces[-1];
-    }
-    else {
-        $self->{mainline_version} = undef;
-    }
-}
 
 sub _set {
 
@@ -231,8 +209,6 @@ sub _set {
             $self->{$attrib} =~ s/\s+/ /g;
         }
     }
-
-    $self->_mainline();
 }
 
 =head2 is_multithread
@@ -274,13 +250,7 @@ information that is available.
 
 sub get_detailed_kernel {
     my $self = shift;
-    return Linux::Info::KernelRelease->new(
-        {
-            release  => $self->get_release,
-            version  => $self->get_version,
-            mainline => $self->get_mainline_version
-        }
-    );
+    return Linux::Info::KernelFactory->create;
 }
 
 sub _set_common {

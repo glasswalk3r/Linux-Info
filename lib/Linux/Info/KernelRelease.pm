@@ -4,17 +4,14 @@ use warnings;
 use Carp qw(confess carp);
 use Set::Tiny 0.04;
 use Class::XSAccessor getters => {
-    get_raw              => 'raw',
-    get_mainline_version => 'mainline_version',
-    get_abi_bump         => 'abi_bump',
-    get_flavour          => 'flavour',
-    get_major            => 'major',
-    get_minor            => 'minor',
-    get_patch            => 'patch',
-    get_compiled_by      => 'compiled_by',
-    get_gcc_version      => 'gcc_version',
-    get_type             => 'type',
-    get_build_datetime   => 'build_datetime',
+    get_raw            => 'raw',
+    get_major          => 'major',
+    get_minor          => 'minor',
+    get_patch          => 'patch',
+    get_compiled_by    => 'compiled_by',
+    get_gcc_version    => 'gcc_version',
+    get_type           => 'type',
+    get_build_datetime => 'build_datetime',
 };
 
 # VERSION
@@ -26,11 +23,7 @@ use Class::XSAccessor getters => {
 Getting the current kernel information:
 
     my $sys = Linux::Info::SysInfo->new;
-    my $current = Linux::Info::KernelRelease->new({
-        release  => $sys->get_release,
-        version  => $sys->get_version,
-        mainline => $sys->get_mainline_version
-    });
+    my $current = Linux::Info::KernelRelease->new;
 
 Or using L<Linux::Info::SysInfo> syntax sugar to achieve the same result:
 
@@ -56,124 +49,97 @@ This make it easier to fetch each information piece of information from the
 string and also to compare different kernel versions, since instances of this
 class overload operators like ">=", ">" and "<".
 
+=cut
+
+sub _set_proc_ver_regex {
+    my $self = shift;
+    $self->{proc_regex} = undef;
+}
+
+sub _parse_proc_ver {
+    my $self = shift;
+    my $file = '/proc/version';
+    open( my $in, '<', $file ) or confess "Cannot read $file: $!";
+    my $line = <$in>;
+    chomp $line;
+    close($in) or confess "Cannot close $file: $!";
+
+    $self->{raw} = $line;
+
+    if ( $line =~ $self->{proc_regex} ) {
+        foreach
+          my $attrib (qw(compiled_by gcc_version type build_datetime version))
+        {
+            $self->{$attrib} = $+{$attrib};
+        }
+    }
+    else {
+        confess(
+            "Failed to match '$line' against '" . $self->{proc_regex} . '\'' );
+    }
+}
+
+# regex must be relaxed because distros can put anything after the first three
+# digits
+my $version_regex = qr/^(\d+)\.(\d+)\.(\d+)\-\d+/;
+
+sub _parse_version {
+    my $self = shift;
+    $self->{raw} =~ $version_regex;
+    $self->{major} = $1;
+    $self->{minor} = $2;
+    $self->{patch} = $3;
+}
+
 =head1 METHODS
 
 =head2 new
 
 Creates a new instance.
 
-Expects as parameter the kernel release information
-(F</proc/sys/kernel/osrelease>).
+Optionally, it might receive a string as parameter like the kernel release
+information from (F</proc/sys/kernel/osrelease>).
 
-Optionally, you can pass:
-
-=over
-
-=item 1.
-
-The kernel version information (F</proc/version>).
-
-=item 2.
-
-The kernel mainline information if available (as from
-F</proc/version_signature> on Ubuntu Linux).
-
-=back
-
-With those parameters, even more information will be available.
+This method will also invoke the C<_set_proc_ver_regex> method, used to
+parse the string at F</proc/version>. Subclasses must override this method,
+since this class won't know how to do it properly.
 
 =cut
 
-# Linux version 2.6.18-92.el5 (brewbuilder@ls20-bc2-13.build.redhat.com) (gcc version 4.1.2 20071124 (Red Hat 4.1.2-41)) #1 SMP Tue Apr 29 13:16:15 EDT 2008
-# Linux version 4.18.0-513.5.1.el8_9.x86_64 (mockbuild@iad1-prod-build001.bld.equ.rockylinux.org) (gcc version 8.5.0 20210514 (Red Hat 8.5.0-20) (GCC)) #1 SMP Fri Nov 17 03:31:10 UTC 2023
-
-# Linux version 6.5.0-28-generic (buildd@lcy02-amd64-098) (x86_64-linux-gnu-gcc-12 (Ubuntu 12.3.0-1ubuntu1~22.04) 12.3.0, GNU ld (GNU Binutils for Ubuntu) 2.38) #29~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Thu Apr  4 14:39:20 UTC 2
-
-my @version_data = qw(compiled_by gcc_version type build_datetime);
-
 sub new {
-    my ( $class, $opts_ref ) = @_;
-    confess "Must receive a hash reference as parameter"
-      unless ( defined($opts_ref) and ( ref $opts_ref eq 'HASH' ) );
+    my ( $class, $release ) = @_;
+    my $self = {};
+    bless $self, $class;
 
-    confess 'The release key is required'
-      unless ( exists $opts_ref->{release} );
+    unless ( defined($release) ) {
+        $self->_set_proc_ver_regex;
 
-    # 6.5.0-28-generic
-    unless ( $opts_ref->{release} =~ /^\d\.\d+\.\d+(\-\d+\-[a-z]+)?/ ) {
-        my $error =
-          'The string for release "' . $opts_ref->{release} . '" is invalid';
-        confess $error;
-    }
-
-    my @pieces = split( '-', $opts_ref->{release} );
-
-    my $self = {
-        raw      => $opts_ref->{release},
-        abi_bump => $pieces[-2],
-        flavour  => $pieces[-1]
-    };
-
-    my $acceptable = Set::Tiny->new(qw(release version mainline));
-
-    foreach my $key ( keys %{$opts_ref} ) {
-        confess "$key key is invalid" unless $acceptable->has($key);
-    }
-
-    # TODO: create a table to match the distribution ID and the regex to parse
-    # version string
-    # if RedHat
-    if ( ( exists $opts_ref->{version} ) and ( defined $opts_ref->{version} ) )
-    {
-        my $regex =
-qr/^Linux\sversion\s[\w\._-]+\s\((?<compiled_by>[\w\.\-\@]+)\)\s\(gcc\sversion\s(?<gcc_version>[\d\.]+).*\)\s#1\s(?<type>\w+)\s(?<build_datetime>.*)/;
-        if ( $opts_ref->{version} =~ $regex ) {
-            foreach my $attrib (@version_data) {
-                $self->{$attrib} = $+{$attrib};
-            }
+        if ( defined( $self->{proc_regex} ) ) {
+            $self->_parse_proc_ver;
         }
         else {
-            foreach my $attrib (@version_data) {
-                $self->{$attrib} = undef;
-            }
+            my $file = '/proc/sys/kernel/osrelease';
+            open( my $in, '<', $file ) or confess "Cannot read $file: $!";
+            $release = <$in>;
+            chomp $release;
+            close($in) or confess "Cannot close $file: $!";
+            $self->{raw} = $release;
         }
     }
     else {
-        foreach my $attrib (@version_data) {
-            $self->{$attrib} = undef;
-        }
+        confess "The string for release '$release' is invalid"
+          unless ( $release =~ $version_regex );
+        $self->{raw} = $release;
     }
 
-    if (    ( exists $opts_ref->{mainline} )
-        and ( defined( $opts_ref->{mainline} ) ) )
-    {
-        $self->{mainline_version} =
-          ( split( /\s/, $opts_ref->{mainline} ) )[-1];
-    }
-    else {
-        $self->{mainline_version} = $pieces[0];
-    }
-
-    bless $self, $class;
     $self->_parse_version();
     return $self;
 }
 
 =head2 get_raw
 
-Returns the raw information stored, as passed to the C<new> method.
-
-=head2 get_mainline_version
-
-Returns the mainline kernel-version.
-
-=head2 get_abi_bump
-
-Returns the application binary interface (ABI) bump from the kernel.
-
-=head2 get_flavour
-
-Returns the kernel flavour parameter.
+Returns the raw information stored, as read from F</proc/sys/kernel/osrelease>
+or passed to the C<new> method.
 
 =head2 get_major
 
@@ -189,29 +155,25 @@ From the version, returns the integer corresponding to the patch number.
 
 =head2 get_build_datetime
 
-Returns a string representing when the kernel was built.
+Returns a string representing when the kernel was built, or C<undef> if not
+possible to parse it.
 
 =head2 get_compiled_by
 
-Returns a string, representing the user who compiled the kernel.
+Returns a string, representing the user who compiled the kernel, or C<undef> if
+not possible to parse it.
 
 =head2 get_gcc_version
 
-Returns a string, representing gcc compiler version used to compile the kernel.
+Returns a string, representing gcc compiler version used to compile the kernel,
+or C<undef> if not possible to parse it.
 
 =head2 get_type
 
-Returns a string, representing the features which define the kernel type.
+Returns a string, representing the features which define the kernel type, or
+C<undef> if not possible to parse it.
 
 =cut
-
-sub _parse_version {
-    my $self = shift;
-    my ( $major, $minor, $patch ) = split( /\./, $self->{mainline_version} );
-    $self->{major} = $major;
-    $self->{minor} = $minor;
-    $self->{patch} = $patch;
-}
 
 sub _validate_other {
     my ( $self, $other ) = @_;
