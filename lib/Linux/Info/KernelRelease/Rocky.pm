@@ -4,7 +4,11 @@ use warnings;
 use strict;
 use parent 'Linux::Info::KernelRelease';
 use Carp qw(confess);
-use Class::XSAccessor getters => {};
+use Class::XSAccessor getters => {
+    get_revision     => 'revision',
+    get_architecture => 'architecture',
+    get_distro_info  => 'distro_info',
+};
 
 # VERSION
 
@@ -28,7 +32,7 @@ string returns.
 
 sub new {
     my $class = shift;
-    my $self  = $class->SUPER::new;
+    my $self  = $class->SUPER::new(@_);
 
     # 4.18.0-513.5.1.el8_9.x86_64
     my $regex = qr/^\d+\.\d+\.\d+\-(\d+\.\d+\.\d+)\.(\w+\_\d)\.(\w+)$/;
