@@ -84,8 +84,8 @@ sub _parse_proc_ver {
 my $version_regex = qr/^(\d+)\.(\d+)\.(\d+)/;
 
 sub _parse_version {
-    my $self = shift;
-    $self->{source}->get_sys_osrelease =~ $version_regex;
+    my ( $self, $raw ) = @_;
+    $raw =~ $version_regex;
     $self->{major} = $1;
     $self->{minor} = $2;
     $self->{patch} = $3;
@@ -136,7 +136,7 @@ sub new {
         $self->{raw} = $release;
     }
 
-    $self->_parse_version();
+    $self->_parse_version( $self->{source}->get_sys_osrelease );
     return $self;
 }
 
