@@ -49,4 +49,18 @@ sub new {
     return $self;
 }
 
+=head2 get_revision
+
+Return the kernel version.
+
+=head2 get_distro_info
+
+Returns the associated distribution information with the kernel.
+
+=head2 get_architecture
+
+Returns the processor architecture the kernel was compiled for.
+
+=cut
+
 1;
