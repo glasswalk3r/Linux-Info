@@ -23,7 +23,7 @@ The expected keys/values are:
 
 =item *
 
-C<sys_version>: path to a corresponding F</proc/sys/kernel/version> file path.
+C<sys_osrelease>: path to a corresponding F</proc/sys/kernel/osrelease> file path.
 
 =item *
 
@@ -44,8 +44,8 @@ sub new {
 
     if ( ( defined($opts_ref) ) and ( ref $opts_ref eq 'HASH' ) ) {
         $self = {
-            sys_version => $opts_ref->{sys_version}
-              || '/proc/sys/kernel/version',
+            sys_osrelease => $opts_ref->{sys_osrelease}
+              || '/proc/sys/kernel/osrelease',
             version           => $opts_ref->{version} || '/proc/version',
             version_signature => $opts_ref->{version_signature}
               || '/proc/version_signature',
@@ -53,7 +53,7 @@ sub new {
     }
     else {
         $self = {
-            sys_version       => '/proc/sys/kernel/version',
+            sys_osrelease     => '/proc/sys/kernel/osrelease',
             version           => '/proc/version',
             version_signature => '/proc/version_signature',
         };
@@ -63,15 +63,15 @@ sub new {
     return $self;
 }
 
-=head2 get_sys_version
+=head2 get_sys_osrelease
 
-Getter for the C<sys_version> file path content.
+Getter for the C<sys_osrelease> file path content.
 
 =cut
 
-sub get_sys_version {
+sub get_sys_osrelease {
     my $self = shift;
-    my $file = $self->{sys_version};
+    my $file = $self->{sys_osrelease};
     open( my $in, '<', $file ) or confess "Cannot read $file: $!";
     my $release = <$in>;
     chomp $release;
