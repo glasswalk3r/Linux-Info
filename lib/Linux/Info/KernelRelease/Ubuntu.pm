@@ -54,8 +54,6 @@ sub new {
 
 sub _set_proc_ver_regex {
     my $self = shift;
-
-# Linux version 6.5.0-35-generic (buildd@lcy02-amd64-079) (x86_64-linux-gnu-gcc-12 (Ubuntu 12.3.0-1ubuntu1~22.04) 12.3.0, GNU ld (GNU Binutils for Ubuntu) 2.38) #35~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Tue May  7 09:00:52 UTC 2
     my $regex =
 qr/^Linux\sversion\s(?<version>\d+\.\d+\.\d+\-\d+\-generic)\s\((?<compiled_by>\w+\@[\w\-]+)\)\s\(.*\s\(.*\)\s(?<gcc_version>\d+\.\d+\.\d+)\,.*\(.*\)\s(?<binutils_version>\d+\.\d+)\)\s\#\d+\~\d+\.\d+\.\d+-Ubuntu\s(?<type>\w+\s[\w+_]+)\s(?<build_datetime>.*)/;
     $self->{proc_regex} = $regex;

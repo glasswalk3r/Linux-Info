@@ -96,9 +96,9 @@ my $version_regex = qr/^(\d+)\.(\d+)\.(\d+)/;
 sub _parse_version {
     my ( $self, $raw ) = @_;
     $raw =~ $version_regex;
-    $self->{major} = $1;
-    $self->{minor} = $2;
-    $self->{patch} = $3;
+    $self->{major} = $1 + 0;
+    $self->{minor} = $2 + 0;
+    $self->{patch} = $3 + 0;
 }
 
 =head1 METHODS

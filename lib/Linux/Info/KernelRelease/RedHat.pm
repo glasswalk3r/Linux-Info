@@ -15,8 +15,6 @@ use Class::XSAccessor getters => {
 
 sub _set_proc_ver_regex {
     my $self = shift;
-
-# Linux version 2.6.18-92.el5 (brewbuilder@ls20-bc2-13.build.redhat.com) (gcc version 4.1.2 20071124 (Red Hat 4.1.2-41)) #1 SMP Tue Apr 29 13:16:15 EDT 2008
     $self->{proc_regex} =
 qr/^Linux\sversion\s(?<version>[\w\._-]+)\s\((?<compiled_by>[\w\.\-\@]+)\)\s\(gcc\sversion\s(?<gcc_version>[\d\.]+).*\)\s#1\s(?<type>\w+)\s(?<build_datetime>.*)/;
 }
@@ -39,7 +37,7 @@ sub new {
     my $regex = qr/^\d+\.\d+\.\d+\-(\d+)\.(\w+)$/;
 
     if ( $self->{version} =~ $regex ) {
-        $self->{revision}    = $1;
+        $self->{revision}    = $1 + 0;
         $self->{distro_info} = $2;
     }
     else {
