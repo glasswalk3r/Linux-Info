@@ -6,6 +6,8 @@ use Linux::Info::KernelSource;
 
 use constant CLASS => 'Linux::Info::KernelRelease::Ubuntu';
 
+plan tests => 15;
+
 require_ok(CLASS);
 can_ok( CLASS, ( 'get_abi_bump', 'get_flavour', 'get_upload', 'get_sig_raw' ) );
 
@@ -17,9 +19,6 @@ my $source     = Linux::Info::KernelSource->new(
         version_signature => "$source_dir/signature",
     }
 );
-
-note('Testing instance with the following KernelSource:');
-diag( explain($source) );
 
 my $instance = CLASS->new( undef, $source );
 isa_ok( $instance, CLASS );
@@ -43,5 +42,3 @@ foreach my $fixture (@fixtures) {
     my $method = $fixture->[0];
     is( $instance->$method, $fixture->[1], "$method works" );
 }
-
-done_testing;

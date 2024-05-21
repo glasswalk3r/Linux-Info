@@ -6,6 +6,8 @@ use Linux::Info::KernelSource;
 
 use constant CLASS => 'Linux::Info::KernelRelease::Rocky';
 
+plan tests => 14;
+
 require_ok(CLASS);
 can_ok( CLASS, ( 'get_revision', 'get_distro_info', 'get_architecture' ) );
 
@@ -16,9 +18,6 @@ my $source     = Linux::Info::KernelSource->new(
         version       => "$source_dir/version",
     }
 );
-
-note('Testing instance with the following KernelSource:');
-diag( explain($source) );
 
 my $instance = CLASS->new( undef, $source );
 isa_ok( $instance, CLASS );
@@ -45,5 +44,3 @@ foreach my $fixture (@fixtures) {
     is( $instance->$method, $fixture->[1], "$method works" )
       or diag( explain($instance) );
 }
-
-done_testing;
