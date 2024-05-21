@@ -69,13 +69,26 @@ lock_hash(%release_files);
 
 Creates and returns a new instance.
 
-No parameter is expected.
+An optional parameter might be passed, which is how to handle caching.
+
+If the parameter is "true" (1), result will be cached after a call to
+C<search_distro> method. If "false" (0), each call of C<search_distro> will
+invalidate the cache and files will be searched and parsed.
+
+The default value is "false" (0) and is probably what you want unless you
+want to rely on the cache or using C<has_distro_info> and C<has_custom>
+methods.
 
 =cut
 
 sub new {
-    my $class = shift;
-    my $self  = { config_dir => DEFAULT_CONFIG_DIR, release_info => undef };
+    my $class      = shift;
+    my $keep_cache = shift || 0;
+    my $self       = {
+        config_dir   => DEFAULT_CONFIG_DIR,
+        release_info => undef,
+        keep_cache   => $keep_cache
+    };
     bless $self, $class;
     return $self;
 }
@@ -159,7 +172,12 @@ sub search_distro {
     my $self       = shift;
     my $os_release = shift || Linux::Info::Distribution::OSRelease->new;
 
-    return $self->{release_info} if ( defined( $self->{release_info} ) );
+    if ( $self->{keep_cache} ) {
+        return $self->{release_info} if ( defined( $self->{release_info} ) );
+    }
+    else {
+        $self->{release_info} = undef;
+    }
 
     if ( $self->{config_dir} eq DEFAULT_CONFIG_DIR ) {
         if ( -r $os_release->get_source ) {

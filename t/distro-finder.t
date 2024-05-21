@@ -1,6 +1,6 @@
 use warnings;
 use strict;
-use Test::More;
+use Test::More tests => 18;
 
 use Linux::Info::Distribution::OSRelease;
 
@@ -92,5 +92,3 @@ is( $other->has_custom, 1, 'found a Custom based file' )
 
 ok( $other->has_distro_info, 'has_distro_info returns true' )
   or diag( explain($other) );
-
-done_testing;
