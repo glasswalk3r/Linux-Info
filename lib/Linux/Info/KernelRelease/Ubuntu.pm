@@ -47,7 +47,7 @@ string returns.
 
 sub new {
     my $class = shift;
-    my $self  = $class->SUPER::new;
+    my $self  = $class->SUPER::new(@_);
     $self->_parse_ver_sig;
     return $self;
 }
