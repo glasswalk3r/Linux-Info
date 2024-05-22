@@ -3,27 +3,22 @@ use warnings;
 use strict;
 use Hash::Util qw(lock_keys);
 use Carp       qw(confess);
-use parent 'Class::Accessor';
-
 use Regexp::Common 2017060201;
 use Set::Tiny 0.04;
+use Class::XSAccessor getters => {
+    get_init_file            => 'init_file',
+    get_source_file          => 'source_file',
+    get_backwards_compatible => 'backwards_compatible',
+    get_global_block_size    => 'global_block_size',
+    get_block_sizes          => 'block_sizes',
+    get_current_kernel       => 'current_kernel'
+};
 
 use Linux::Info::KernelRelease;
 
 # VERSION
 
-my @_attribs = (
-    'init_file',            'source_file',
-    'backwards_compatible', 'global_block_size',
-    'block_sizes',          'current_kernel'
-);
-
-__PACKAGE__->follow_best_practice;
-__PACKAGE__->mk_ro_accessors(@_attribs);
-
-=head1 NAME
-
-Linux::Info::DiskStats::Options - Configuration for Linux::Info::DiskStats instances.
+# ABSTRACT: Configuration for Linux::Info::DiskStats instances.
 
 =head1 SYNOPSIS
 
@@ -122,7 +117,13 @@ sub new {
           unless ( ref $opts_ref eq 'HASH' );
     }
 
-    my $valid_keys = Set::Tiny->new(@_attribs);
+    my $valid_keys = Set::Tiny->new(
+        (
+            'init_file',            'source_file',
+            'backwards_compatible', 'global_block_size',
+            'block_sizes',          'current_kernel'
+        )
+    );
 
     foreach my $key ( keys %{$opts_ref} ) {
         confess "The key $key in the hash reference is not valid"
@@ -250,30 +251,6 @@ L<Linux::Info::DiskStats>
 L<Linux::Info::KernelRelease>
 
 =back
-
-=head1 AUTHOR
-
-Alceu Rodrigues de Freitas Junior, E<lt>glasswalk3r@yahoo.com.brE<gt>
-
-=head1 COPYRIGHT AND LICENSE
-
-This software is copyright (c) 2024 of Alceu Rodrigues de Freitas Junior,
-E<lt>glasswalk3r@yahoo.com.brE<gt>
-
-This file is part of Linux Info project.
-
-Linux-Info is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Linux-Info is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Linux Info. If not, see <http://www.gnu.org/licenses/>.
 
 =cut
 

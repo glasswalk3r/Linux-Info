@@ -8,9 +8,7 @@ use Hash::Util 'lock_keys';
 
 # VERSION
 
-=head1 NAME
-
-Linux::Info::DiskUsage - Collect linux disk usage.
+# ABSTRACT: Collect linux disk usage.
 
 =head1 SYNOPSIS
 
@@ -246,30 +244,6 @@ L<Linux::Proc::Mounts>: this class borrows code from it.
 L<Linux::Info>
 
 =back
-
-=head1 AUTHOR
-
-Alceu Rodrigues de Freitas Junior, E<lt>glasswalk3r@yahoo.com.brE<gt>.
-
-=head1 COPYRIGHT AND LICENSE
-
-This software is copyright (c) 2015 of Alceu Rodrigues de Freitas Junior,
-E<lt>glasswalk3r@yahoo.com.brE<gt>.
-
-This file is part of Linux Info project.
-
-Linux-Info is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Linux-Info is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Linux Info.  If not, see <http://www.gnu.org/licenses/>.
 
 =cut
 

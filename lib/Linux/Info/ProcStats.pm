@@ -6,10 +6,7 @@ use Time::HiRes 1.9725;
 use YAML::XS 0.88;
 
 # VERSION
-
-=head1 NAME
-
-Linux::Info::ProcStats - Collect linux process statistics.
+# ABSTRACT: Collect linux process statistics.
 
 =head1 SYNOPSIS
 
