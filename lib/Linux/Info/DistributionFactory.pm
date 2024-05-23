@@ -52,6 +52,7 @@ my %os_release_distros = (
     CloudLinux => 'CloudLinux',
     centos     => 'CentOS',
     alpine     => 'Alpine',
+    debian     => 'Debian',
 );
 lock_hash(%os_release_distros);
 
