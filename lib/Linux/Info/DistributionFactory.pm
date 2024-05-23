@@ -37,7 +37,7 @@ use Linux::Info::Distribution::OSRelease::Ubuntu;
 
 =head1 DESCRIPTION
 
-This class implements the design patter of Factory to handle how to create all
+This class implements the design pattern of Factory to handle how to create all
 existing variations of subclass of L<Linux::Info::Distribution> subclasses.
 
 =cut
