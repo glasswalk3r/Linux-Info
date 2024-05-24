@@ -112,37 +112,34 @@ If the file is not available, others will be attempted.
 =cut
 
 sub create {
-    my $self     = shift;
-    my $info_ref = $self->{finder}->search_distro;
+    my $self      = shift;
+    my $info      = $self->{finder}->search_distro;
+    my $distro_id = $info->get_distro_id;
 
     unless ( $self->{finder}->has_custom ) {
         my $base_class = 'Linux::Info::Distribution::OSRelease';
 
-        if ( exists $os_release_distros{ $info_ref->{id} } ) {
-            my $class =
-              $base_class . '::' . $os_release_distros{ $info_ref->{id} };
-            return $class->new( $info_ref->{file_path} );
+        if ( exists $os_release_distros{$distro_id} ) {
+            my $class = $base_class . '::' . $os_release_distros{$distro_id};
+            return $class->new( $info->get_file_path );
         }
         else {
-            return $base_class->new($info_ref);
+            return $base_class->new( $info->get_file_path );
         }
     }
 
-    if ( exists $info_ref->{id} ) {
-        my $distro_name;
+    my $distro_name;
 
-        if ( exists $os_release_distros{ $info_ref->{id} } ) {
-            $distro_name = $os_release_distros{ $info_ref->{id} };
-        }
-        else {
-            confess( 'Do not know how to handle the id ' . $info_ref->{id} );
-        }
-
-        my $class = "Linux::Info::Distribution::Custom::$distro_name";
-        return $class->new($info_ref);
+    if ( exists $os_release_distros{$distro_id} ) {
+        $distro_name = $os_release_distros{$distro_id};
+    }
+    else {
+        confess( 'Do not know how to handle the id ' . $distro_id );
     }
 
-    confess( 'Missing id, do not know how to handle ' . Dumper($info_ref) );
+    my $class = "Linux::Info::Distribution::Custom::$distro_name";
+    return $class->new($info);
+
 }
 
 =head1 EXPORTS

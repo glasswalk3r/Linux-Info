@@ -48,7 +48,7 @@ default location or any other provided.
 
 A class method, i.e., doesn't require a instance to be invoked.
 
-Optionally, accepts a file path to the different file insteade using the
+Optionally, accepts a file path to the different file instead using the
 default one.
 
 Returns a hash reference, with all fields/values retrieve from the file.
@@ -57,9 +57,17 @@ The fields, stored as keys, will be forced to be on lowercase.
 
 =cut
 
+sub _validate_file_path {
+    my $file_path = shift;
+    confess 'Must receive the complete path to a file'
+      unless ( defined $file_path );
+    confess( 'must be a scalar (string), not ' . ref($file_path) )
+      unless ( ref $file_path eq '' );
+}
+
 sub _parse {
     my $file_path = shift;
-    confess 'must be a scalar (string)' unless ( ref $file_path eq '' );
+    _validate_file_path($file_path);
 
     open( my $in, '<', $file_path ) or confess "Cannot read $file_path: $!";
     my %data;
@@ -116,7 +124,13 @@ to parse the file content.
 
 sub new {
     my ( $class, $file_path ) = @_;
-    $file_path = DEFAULT_FILE unless ( defined $file_path );
+
+    if ( defined($file_path) ) {
+        _validate_file_path($file_path);
+    }
+    else {
+        $file_path = DEFAULT_FILE;
+    }
 
     my $info_ref = parse_from_file($file_path);
 
@@ -150,8 +164,8 @@ sub new {
 This class caches the information read from the source file into memory, so
 subclasses can reuse this information to handle additional attributes.
 
-After that, the information is usually and should be removed by invoking this
-method.
+After that, the information is usually not necessary anymore and should be
+removed by invoking this method.
 
 =cut
 
