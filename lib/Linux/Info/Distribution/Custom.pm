@@ -84,26 +84,22 @@ sub _parse_source {
 
 Creates and returns a new instance of this class.
 
-Expects as parameter a hash reference containing one single key which is
-C<file_to_parse>, which will be used to read the file that contains the
-expected information to be extracted from.
+Expects as parameter a instance of L<Linux::Info::Distribution::BasicInfo>.
 
 =cut
 
 sub new {
-    my ( $class, $attribs_ref ) = @_;
-
-    confess 'The hash reference is missing the "file_to_parse" key'
-      unless ( exists $attribs_ref->{file_to_parse} );
-
-    # delaying definition until the file is parsed
-    $attribs_ref->{version}    = undef;
-    $attribs_ref->{version_id} = undef;
-    $attribs_ref->{name}       = $attribs_ref->{id};
+    my ( $class, $info ) = @_;
+    my $attribs_ref = {
+        version    => undef,
+        version_id => undef,
+        id         => $info->get_distro_id,
+        name       => $info->get_distro_id,
+    };
 
     my $self = $class->SUPER::new($attribs_ref);
     unlock_hash( %{$self} );
-    $self->{source} = $attribs_ref->{file_to_parse};
+    $self->{source} = $info->get_file_path;
     $self->_parse_source;
     lock_hash( %{$self} );
     return $self;

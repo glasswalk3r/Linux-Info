@@ -21,8 +21,12 @@ on 'test' => sub {
   requires "Exporter" => "0";
   requires "File::Temp" => "0";
   requires "Scalar::Util" => "0";
+  requires "Test::Kwalitee" => "1.28";
   requires "Test::More" => "0";
   requires "Test::Most" => "0.38";
+  requires "Test::Perl::Critic" => "1.04";
+  requires "Test::Pod" => "1.52";
+  requires "Test::Pod::Coverage" => "1.10";
   requires "lib" => "0";
   requires "perl" => "5.012000";
 };
