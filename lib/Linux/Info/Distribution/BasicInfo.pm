@@ -10,7 +10,7 @@ use Class::XSAccessor getters => {
 
 # VERSION
 
-# ABSTRACT - simple class to exchange data between DistributionFinder and DistributionFactory classes
+# ABSTRACT: simple class to exchange data between DistributionFinder and DistributionFactory classes
 
 =head1 METHODS
 
