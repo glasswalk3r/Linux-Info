@@ -4,7 +4,8 @@ use Test::More;
 
 my $class = 'Linux::Info::Distribution::OSRelease';
 require_ok($class);
-can_ok( $class, qw(parse parse_from_file _parse get_source new) );
+can_ok( $class,
+    qw(parse parse_from_file _parse get_source new _handle_missing) );
 isa_ok( $class, 'Linux::Info::Distribution' );
 ok( $class->DEFAULT_FILE, 'DEFAULT_FILE returns a value' );
 is( ref( $class->parse_from_file ), 'HASH', 'class parse call works' );

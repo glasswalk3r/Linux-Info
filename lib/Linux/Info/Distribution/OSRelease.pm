@@ -42,6 +42,11 @@ class, but most probably will provide more fields.
 This classes provides a parser to retrieve those fields and more from the
 default location or any other provided.
 
+For subclasses that doesn't provide all those fields, it will be required
+to setup some workaround, like setting the key with C<undef>. In order to
+achieve that, subclasses B<must> override the "private" class method
+C<_handle_missing>.
+
 =head1 METHODS
 
 =head2 parse
@@ -122,6 +127,8 @@ to parse the file content.
 
 =cut
 
+sub _handle_missing { }
+
 sub new {
     my ( $class, $file_path ) = @_;
 
@@ -133,9 +140,7 @@ sub new {
     }
 
     my $info_ref = parse_from_file($file_path);
-
-    # WORKAROUND: Alpine doesn't provide that
-    $info_ref->{version} = undef unless ( exists $info_ref->{version} );
+    $class->_handle_missing($info_ref);
 
     my $self = $class->SUPER::new($info_ref);
     unlock_hash( %{$self} );
