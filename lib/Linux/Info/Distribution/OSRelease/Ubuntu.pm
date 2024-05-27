@@ -21,7 +21,7 @@ use Class::XSAccessor getters => {
 This subclass extends the attributes available on the parent class based on
 what Ubuntu makes available.
 
-See the methods to check which additional information is avaiable.
+See the methods to check which additional information is available.
 
 =head1 METHODS
 
