@@ -74,7 +74,7 @@ sub _parse_proc_ver {
 
     if ( $line =~ $self->{proc_regex} ) {
 
-        my @required = qw(compiled_by gcc_version type build_datetime version);
+        my @required = qw(compiled_by gcc_version build_datetime version);
 
         foreach my $key (@required) {
             confess "Missing '$key' in the regex match groups"

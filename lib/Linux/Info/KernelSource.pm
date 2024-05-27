@@ -46,17 +46,32 @@ sub new {
         $self = {
             sys_osrelease => $opts_ref->{sys_osrelease}
               || '/proc/sys/kernel/osrelease',
-            version           => $opts_ref->{version} || '/proc/version',
-            version_signature => $opts_ref->{version_signature}
-              || '/proc/version_signature',
+            version => $opts_ref->{version} || '/proc/version',
         };
+
+        if ( exists $opts_ref->{version_signature} ) {
+            $self->{version_signature} = $opts_ref->{version_signature};
+        }
+        elsif ( -r '/proc/version_signature' ) {
+            $self->{version_signature} = '/proc/version_signature';
+        }
+        else {
+            $self->{version_signature} = undef;
+        }
+
     }
     else {
         $self = {
-            sys_osrelease     => '/proc/sys/kernel/osrelease',
-            version           => '/proc/version',
-            version_signature => '/proc/version_signature',
+            sys_osrelease => '/proc/sys/kernel/osrelease',
+            version       => '/proc/version',
         };
+
+        if ( -r '/proc/version_signature' ) {
+            $self->{version_signature} = '/proc/version_signature';
+        }
+        else {
+            $self->{version_signature} = undef;
+        }
     }
 
     bless $self, $class;

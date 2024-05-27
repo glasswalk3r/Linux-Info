@@ -27,6 +27,13 @@ to retrieve data in the expected format.
 
 =cut
 
+sub _handle_missing {
+    my ( $class, $info_ref ) = @_;
+
+    # WORKAROUND: Alpine doesn't provide that
+    $info_ref->{version} = undef unless ( exists $info_ref->{version} );
+}
+
 sub new {
     my ( $class, $file_path ) = @_;
     my $self = $class->SUPER::new($file_path);
