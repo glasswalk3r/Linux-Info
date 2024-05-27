@@ -32,6 +32,7 @@ sub new {
     my $class = shift;
     my $self  = $class->SUPER::new(@_);
     $self->{type} = undef;
+    return $self;
 }
 
 =head2 get_binutils_version
