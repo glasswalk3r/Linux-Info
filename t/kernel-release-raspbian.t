@@ -6,8 +6,6 @@ use Linux::Info::KernelSource;
 
 use constant CLASS => 'Linux::Info::KernelRelease::Raspbian';
 
-# plan tests => 13;
-
 require_ok(CLASS);
 can_ok( CLASS, ( 'get_binutils_version', 'get_build_number', ) );
 
