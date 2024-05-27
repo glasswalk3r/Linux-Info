@@ -15,8 +15,6 @@ use Class::XSAccessor getters => {
 
 sub _set_proc_ver_regex {
     my $self = shift;
-
-#Linux version 6.6.31-0-lts (buildozer@build-3-19-x86_64) (gcc (Alpine 13.2.1_git20231014) 13.2.1 20231014, GNU ld (GNU Binutils) 2.41) #1-Alpine SMP PREEMPT_DYNAMIC Fri, 17 May 2024 12:37:38 +0000
     $self->{proc_regex} =
 qr/^Linux\sversion\s(?<version>\d+\.\d+\.\d+\-\d+\-?lts?)\s\((?<compiled_by>[\w\.\-\@]+)\)\s\(gcc\s\(.*\)\s(?<gcc_version>\d+\.\d+\.\d+)\s\d+,\sGNU\sld\s\(.*\)\s(?<binutils_version>\d+\.\d+)\)\s#\d-Alpine\s(?<type>\w+\s[\w+_]+)\s(?<build_datetime>.*)/;
 }
