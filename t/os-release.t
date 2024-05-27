@@ -1,6 +1,8 @@
 use warnings;
 use strict;
-use Test::More;
+use Test::Most 0.38;
+
+plan tests => 16;
 
 my $class = 'Linux::Info::Distribution::OSRelease';
 require_ok($class);
@@ -36,4 +38,6 @@ is(
 is( $instance->get_id,     'ubuntu', 'get_id works' );
 is( $instance->get_source, $fixture, 'get_source returns the custom value' );
 
-done_testing;
+$fixture = 't/samples/os-releases/raspbian';
+note("Using custom file $fixture to force a failure");
+dies_ok { $class->new($fixture) } "dies due missing fields in $fixture";

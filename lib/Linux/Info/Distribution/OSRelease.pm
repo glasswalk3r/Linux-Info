@@ -43,7 +43,7 @@ This classes provides a parser to retrieve those fields and more from the
 default location or any other provided.
 
 For subclasses that doesn't provide all those fields, it will be required
-to setup some workaround, like setting the key with C<undef>. In order to
+to setup some workaround, like setting the key value with C<undef>. In order to
 achieve that, subclasses B<must> override the "private" class method
 C<_handle_missing>.
 
@@ -118,6 +118,21 @@ sub parse_from_file {
     return _parse( $_[0] );
 }
 
+=head2 _handle_missing
+
+"Private" method that handles missing fields.
+
+It should be overrided by subclasses of this class.
+
+It expects as positional parameter a hash reference with the content returned
+from C<parse> method.
+
+This method returns nothing.
+
+=cut
+
+sub _handle_missing { }
+
 =head2 new
 
 Creates and returns a new instance.
@@ -126,8 +141,6 @@ Expects the same optional parameter of C<parse>, and uses this same method
 to parse the file content.
 
 =cut
-
-sub _handle_missing { }
 
 sub new {
     my ( $class, $file_path ) = @_;
@@ -140,7 +153,7 @@ sub new {
     }
 
     my $info_ref = parse_from_file($file_path);
-    $class->_handle_missing($info_ref);
+    $class->_handle_missing( $info_ref, $file_path );
 
     my $self = $class->SUPER::new($info_ref);
     unlock_hash( %{$self} );
