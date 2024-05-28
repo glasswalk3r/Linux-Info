@@ -284,11 +284,6 @@ sub new {
     return bless \%self, $class;
 }
 
-sub init {
-    my $self = shift;
-    $self->{init} = $self->_init;
-}
-
 sub get {
     my $self = shift;
 
@@ -307,7 +302,7 @@ sub raw {
     return $stat;
 }
 
-sub _init {
+sub init {
     my $self  = shift;
     my $file  = $self->{files};
     my $pids  = $self->_get_pids;
@@ -340,7 +335,7 @@ sub _init {
         }
     }
 
-    return $stats;
+    $self->{init} = $stats;
 }
 
 sub _load {

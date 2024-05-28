@@ -20,11 +20,11 @@ require_ok($class);
 can_ok(
     $class,
     (
-        'new',        'init',      '_init',       'get',
-        'raw',        '_load',     '_get_limits', '_deltas',
-        '_get_statm', '_get_stat', '_get_owner',  '_get_cmdline',
-        '_get_wchan', '_get_io',   '_get_fd',     '_get_pids',
-        '_uptime',    '_calsec',
+        'new',       'init',        'get',          'raw',
+        '_load',     '_get_limits', '_deltas',      '_get_statm',
+        '_get_stat', '_get_owner',  '_get_cmdline', '_get_wchan',
+        '_get_io',   '_get_fd',     '_get_pids',    '_uptime',
+        '_calsec',
     )
 );
 
