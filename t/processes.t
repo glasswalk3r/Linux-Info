@@ -45,7 +45,6 @@ note('Testing from Linux::Info interface');
 my $sys = Linux::Info->new();
 $sys->set( processes => 1 );
 note('Waiting for data');
-sleep(1);
 my $stats = $sys->get;
 
 unless ( scalar( keys %{ $stats->processes } > 0 ) ) {
@@ -70,12 +69,12 @@ is( ref $data_ref, 'HASH', 'get returns a hash reference' );
 ok(
     not( exists( $data_ref->{$$}->{limits} ) ),
     'there is no limits information since not requested'
-);
+) or diag( explain($data_ref) );
 
 note('Creating instance with own pid and requesting limits');
 $instance = Linux::Info::Processes->new(
-    pids  => [ $$, ],
-    files => { limits => 'limits' }
+    pids    => [ $$, ],
+    enabled => { limits => 1 },
 );
 $instance->init;
 $data_ref = $instance->get;

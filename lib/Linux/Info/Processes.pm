@@ -174,7 +174,7 @@ It's possible to handoff an array reference with a PID list.
 
 It's also possible to set the path to the F<proc> filesystem:
 
-     Linux::Info::Processes->new(
+    my $lxs = Linux::Info::Processes->new(
         files => {
             # This is the default
             path    => '/proc',
@@ -186,9 +186,19 @@ It's also possible to set the path to the F<proc> filesystem:
             wchan   => 'wchan',
             fd      => 'fd',
             io      => 'io',
-            limits  => '',
+            limits  => 'limits',
         }
     );
+
+If you want to enable C<io> and C<limits> information about the
+processes, you need to enabled it explicity:
+
+    my $lxs = Linux::Info::Processes->new(enabled => {
+        io => 1, limits => 1
+    });
+
+Remember that the process executing C<Linux::Info::Processes> requires rights
+to read C<io> and C<limits>.
 
 =head2 init()
 
@@ -253,9 +263,18 @@ sub new {
             wchan   => 'wchan',
             fd      => 'fd',
             io      => 'io',
-            limits  => '',
+            limits  => 'limits',
         },
+        enabled => {
+            io     => 0,
+            limits => 0,
+        }
     );
+
+    if ( exists $opts->{enabled} ) {
+        map { $self{enabled}->{$_} = $opts->{enabled}->{$_} }
+          keys( %{ $opts->{enabled} } );
+    }
 
     if ( defined $opts->{pids} ) {
         if ( ref( $opts->{pids} ) ne 'ARRAY' ) {
@@ -298,7 +317,6 @@ sub get {
 sub raw {
     my $self = shift;
     my $stat = $self->_load;
-
     return $stat;
 }
 
@@ -309,9 +327,6 @@ sub init {
     my $stats = {};
 
     $stats->{time} = Time::HiRes::gettimeofday();
-
-    my $collecting_io     = $file->{'io'};
-    my $collecting_limits = $file->{'limits'};
 
     my @keys =
       qw (minflt cminflt mayflt cmayflt utime stime cutime cstime sttime);
@@ -325,30 +340,31 @@ sub init {
             }
             $stats->{$pid}->{io} = $self->_get_io($pid);
 
-            if ($collecting_io) {
-                $stats->{$pid}->{io} = $self->_get_io($pid);
+            foreach my $data (qw(io limits)) {
+                if ( $self->{enabled}->{$data} ) {
+                    my $method = "_get_$data";
+                    $stats->{$pid}->{$data} = $self->$method($pid);
+                }
             }
-            if ($collecting_limits) {
-                $stats->{$pid}->{limits} = $self->_get_limits($pid);
-            }
-
         }
     }
-
     $self->{init} = $stats;
 }
 
 sub _load {
     my $self   = shift;
-    my $file   = $self->{files};
     my $uptime = $self->_uptime;
     my $pids   = $self->_get_pids;
     my %stats;
     $stats{time} = Time::HiRes::gettimeofday();
 
     my @keys = qw(statm stat owner cmdline wchan fd);
-    push( @keys, 'io' )     if ( $file->{'io'} );
-    push( @keys, 'limits' ) if ( $file->{'limits'} );
+
+    foreach my $data (qw(io limits)) {
+        if ( $self->{enabled}->{$data} ) {
+            push( @keys, $data );
+        }
+    }
 
   PID: foreach my $pid ( @{$pids} ) {
         foreach my $key (@keys) {
