@@ -633,10 +633,7 @@ sub _get_wchan {
     my $wchan = <$fh>;
     close $fh;
 
-    if ( !defined $wchan ) {
-        $wchan = defined;
-    }
-
+    $wchan = defined unless ( defined $wchan );
     chomp $wchan;
     return $wchan;
 }
