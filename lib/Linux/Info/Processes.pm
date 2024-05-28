@@ -643,9 +643,14 @@ sub _get_io {
     my $file = $self->{files};
     my %stat = ();
 
+    my $regex = qr/^([a-z_]+):\s+(\d+)/;
+
     if ( open my $fh, '<', "$file->{path}/$pid/$file->{io}" ) {
+
         while ( my $line = <$fh> ) {
-            if ( $line =~ /^([a-z_]+):\s+(\d+)/ ) {
+            chomp $line;
+
+            if ( $line =~ $regex ) {
                 $stat{$1} = $2;
             }
         }
