@@ -141,7 +141,7 @@ sub _search_release_file {
         if ( ( exists $release_files{$thing} ) and ( -f $file_path ) ) {
             $self->{distro_info} = Linux::Info::Distribution::BasicInfo->new(
                 ( lc $release_files{$thing} ), $file_path, );
-
+            $self->{custom_source} = 1;
             last;
         }
     }
@@ -170,7 +170,7 @@ subclasses.
 =cut
 
 sub search_distro {
-    my ( $self, $os_release ) = @_;
+    my $self = shift;
 
     if ( $self->{keep_cache} ) {
         return $self->{distro_info} if ( defined( $self->{distro_info} ) );
@@ -181,27 +181,22 @@ sub search_distro {
 
     if ( $self->{config_dir} eq DEFAULT_CONFIG_DIR ) {
 
-        if ( ( defined $os_release ) and ( -r $os_release->get_source ) ) {
-            $self->{distro_info} =
-              Linux::Info::Distribution::BasicInfo->new(
-                $os_release->parse->{id},
-                $os_release->get_source );
-        }
-        elsif ( -r Linux::Info::Distribution::OSRelease::DEFAULT_FILE ) {
+        if ( -r Linux::Info::Distribution::OSRelease::DEFAULT_FILE ) {
             $self->{distro_info} = Linux::Info::Distribution::BasicInfo->new(
                 Linux::Info::Distribution::OSRelease->parse_from_file->{id},
                 Linux::Info::Distribution::OSRelease::DEFAULT_FILE,
             );
         }
         else {
-            confess 'No custom or default source file, impossible to continue';
+            $self->_search_release_file;
         }
-
     }
     else {
         $self->_search_release_file;
-        $self->{custom_source} = 1;
     }
+
+    confess 'No custom or default source file, impossible to continue'
+      unless ( defined $self->{distro_info} );
 
     return $self->{distro_info};
 }
