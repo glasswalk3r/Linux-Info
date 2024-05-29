@@ -30,12 +30,13 @@ factory is executing.
 =cut
 
 sub create {
-    my $class       = shift;
     my $distro_name = Linux::Info::DistributionFactory->new->distro_name;
     my %map         = (
-        redhat => 'RedHat',
-        rocky  => 'Rocky',
-        ubuntu => 'Ubuntu',
+        redhat   => 'RedHat',
+        rocky    => 'Rocky',
+        ubuntu   => 'Ubuntu',
+        alpine   => 'Alpine',
+        raspbian => 'Raspbian',
     );
 
     if ( exists $map{$distro_name} ) {
