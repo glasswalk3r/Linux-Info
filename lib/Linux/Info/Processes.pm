@@ -682,9 +682,7 @@ sub _get_pids {
     my $self = shift;
     my $file = $self->{files};
 
-    if ( $self->{pids} ) {
-        return $self->{pids};
-    }
+    return $self->{pids} if ( $self->{pids} );
 
     opendir my $dh, $file->{path}
       or confess "unable to open directory $file->{path} ($!)";
