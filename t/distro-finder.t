@@ -72,10 +72,8 @@ is( $another->has_custom, 1, 'found a Custom based file' )
 note("Forcing $dir as a custom config_dir and OSRelease");
 my $other = $class->new();
 $other->set_config_dir($dir);
-my $result = $other->search_distro( Linux::Info::Distribution::OSRelease->new );
-
+my $result = $other->search_distro;
 isa_ok( $result, 'Linux::Info::Distribution::BasicInfo' );
-
 is( $result->get_file_path, $redhat_file,
     'search_distro returns a RedHat info' )
   or diag( explain($result) );
