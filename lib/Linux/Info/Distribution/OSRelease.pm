@@ -58,7 +58,7 @@ default one.
 
 Returns a hash reference, with all fields/values retrieve from the file.
 
-The fields, stored as keys, will be forced to be on lowercase.
+The fields, stored as keys, will be forced to be lowercase.
 
 =cut
 
@@ -93,6 +93,8 @@ sub _parse {
 
 Instance method. Parses a file with the expected format of F</etc/os-release>.
 
+Returns a hash reference.
+
 =cut
 
 sub parse {
@@ -110,10 +112,12 @@ Class method. Parses a file with the expected format of F</etc/os-release>.
 
 Optionally, accepts a string as the complete path to a file to be parsed.
 
+Returns a hash reference.
+
 =cut
 
 sub parse_from_file {
-    return _parse( $_[1] )      if ( length( scalar(@_) ) == 2 );
+    return _parse( $_[1] )      if ( scalar(@_) == 2 );
     return _parse(DEFAULT_FILE) if ( $_[0] eq __PACKAGE__ );
     return _parse( $_[0] );
 }
