@@ -34,11 +34,11 @@ jobs:
             Time::HiRes~1.9764
             POSIX
             Class::XSAccessor
-            Devel::CheckOS
             Test::Perl::Critic
             Test::Pod
             Test::Pod::Coverage
             Test::Most
+            Test::TempDir::Tiny
             Set::Tiny
             Filesys::Df
             Regexp::Common
