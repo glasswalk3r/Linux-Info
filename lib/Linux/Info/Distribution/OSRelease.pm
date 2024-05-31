@@ -93,6 +93,8 @@ sub _parse {
 
 Instance method. Parses a file with the expected format of F</etc/os-release>.
 
+Returns a hash reference.
+
 =cut
 
 sub parse {
@@ -109,6 +111,8 @@ sub parse {
 Class method. Parses a file with the expected format of F</etc/os-release>.
 
 Optionally, accepts a string as the complete path to a file to be parsed.
+
+Returns a hash reference.
 
 =cut
 

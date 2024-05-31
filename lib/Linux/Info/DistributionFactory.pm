@@ -108,6 +108,10 @@ In this case, if a subclass of L<Linux::INfo::Distribution::OSRelease> is not
 available, this class will be used instead, which means less attributes will
 be available.
 
+Beware that a distribution that uses F</etc/os-release> but doesn't have a
+subclasses of L<Linux::INfo::Distribution::OSRelease> might just break if the
+minimum of fields are not present in the file.
+
 If the file is not available, others will be attempted.
 
 =cut
