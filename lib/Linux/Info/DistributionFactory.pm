@@ -17,6 +17,7 @@ use Linux::Info::Distribution::OSRelease::Alpine;
 use Linux::Info::Distribution::OSRelease::Amazon;
 use Linux::Info::Distribution::OSRelease::CentOS;
 use Linux::Info::Distribution::OSRelease::Debian;
+use Linux::Info::Distribution::OSRelease::Raspbian;
 use Linux::Info::Distribution::OSRelease::RedHat;
 use Linux::Info::Distribution::OSRelease::Rocky;
 use Linux::Info::Distribution::OSRelease::Ubuntu;
@@ -49,7 +50,7 @@ my %os_release_distros = (
     rhel       => 'RedHat',
     amazon     => 'Amazon',
     amzn       => 'Amazon',
-    CloudLinux => 'CloudLinux',
+    cloudlinux => 'CloudLinux',
     centos     => 'CentOS',
     alpine     => 'Alpine',
     raspbian   => 'Raspbian',
