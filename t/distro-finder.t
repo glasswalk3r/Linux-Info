@@ -2,7 +2,7 @@ use warnings;
 use strict;
 use Test::More;
 use File::Copy;
-use Test::TempDir::Tiny 0.018;
+use Test::TempDir::Tiny;
 
 use Linux::Info::Distribution::OSRelease;
 use Linux::Info::Distribution::BasicInfo;
