@@ -111,38 +111,52 @@ sub _config_dir {
     my $version_regex = qr/version$/;
     my $release_regex = qr/release$/;
     my @candidates;
-    my $unwanted = (
-        File::Spec->splitpath(
-            Linux::Info::Distribution::OSRelease->DEFAULT_FILE
-        )
-    )[-1];
 
     while ( readdir $dh ) {
         next if ( ( $_ eq '.' ) or ( $_ eq '..' ) );
         push( @candidates, ($_) )
-          if (
-            ( $_ =~ $version_regex )
-            or (    ( $_ ne $unwanted )
-                and ( $_ =~ $release_regex ) )
-          );
+          if ( ( $_ =~ $version_regex )
+            or ( $_ =~ $release_regex ) );
     }
 
     closedir($dh);
     return \@candidates;
 }
 
+sub _osrelease_basic {
+    my ( $self, $file_path ) = @_;
+    $self->{distro_info} = Linux::Info::Distribution::BasicInfo->new(
+        Linux::Info::Distribution::OSRelease->parse_from_file($file_path)->{id},
+        $file_path,
+    );
+}
+
 sub _search_release_file {
     my $self           = shift;
     my $candidates_ref = $self->_config_dir;
 
+    my $os_release = (
+        File::Spec->splitpath(
+            Linux::Info::Distribution::OSRelease->DEFAULT_FILE
+        )
+    )[-1];
+
     foreach my $thing ( @{$candidates_ref} ) {
         my $file_path = $self->{config_dir} . '/' . $thing;
 
-        if ( ( exists $release_files{$thing} ) and ( -f $file_path ) ) {
-            $self->{distro_info} = Linux::Info::Distribution::BasicInfo->new(
-                ( lc $release_files{$thing} ), $file_path, );
-            $self->{custom_source} = 1;
-            last;
+        if ( -f $file_path ) {
+            if ( $os_release eq $thing ) {
+                $self->_osrelease_basic($file_path);
+                last;
+            }
+
+            if ( exists $release_files{$thing} ) {
+                $self->{distro_info} =
+                  Linux::Info::Distribution::BasicInfo->new(
+                    ( lc $release_files{$thing} ), $file_path, );
+                $self->{custom_source} = 1;
+                last;
+            }
         }
     }
 }
@@ -182,10 +196,8 @@ sub search_distro {
     if ( $self->{config_dir} eq DEFAULT_CONFIG_DIR ) {
 
         if ( -r Linux::Info::Distribution::OSRelease::DEFAULT_FILE ) {
-            $self->{distro_info} = Linux::Info::Distribution::BasicInfo->new(
-                Linux::Info::Distribution::OSRelease->parse_from_file->{id},
-                Linux::Info::Distribution::OSRelease::DEFAULT_FILE,
-            );
+            $self->_osrelease_basic(
+                Linux::Info::Distribution::OSRelease::DEFAULT_FILE);
         }
         else {
             $self->_search_release_file;

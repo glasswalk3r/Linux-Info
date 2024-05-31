@@ -1,6 +1,8 @@
 use warnings;
 use strict;
 use Test::More;
+use File::Copy;
+use Test::TempDir::Tiny 0.018;
 
 use Linux::Info::Distribution::OSRelease;
 use Linux::Info::Distribution::BasicInfo;
@@ -32,8 +34,12 @@ SKIP: {
       or diag( explain($instance) );
 }
 
-my $dir = 't/samples';
+my $dir = tempdir();
 note("Forcing $dir as a custom config_dir");
+
+my $redhat_file = "$dir/redhat_version";
+copy( "t/samples/custom/redhat", $redhat_file ) or die "Cannot copy file: $!";
+
 my $another = Linux::Info::DistributionFinder->new;
 $another->set_config_dir($dir);
 my $config_dir_ref = $another->_config_dir;
@@ -43,8 +49,6 @@ is( ref($config_dir_ref), 'ARRAY',
 is( ( scalar @{$config_dir_ref} ),
     1, '_config_dir returns the expected number of files' )
   or diag( explain($config_dir_ref) );
-
-my $redhat_file = 't/samples/redhat_version';
 
 is( $another->search_distro->get_file_path,
     $redhat_file,
