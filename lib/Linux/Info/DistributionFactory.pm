@@ -4,7 +4,6 @@ use warnings;
 use strict;
 use Hash::Util qw(lock_hash lock_keys);
 use Carp       qw(confess);
-use Data::Dumper;
 
 use Linux::Info::DistributionFinder;
 
@@ -118,7 +117,7 @@ sub create {
     my $info      = $self->{finder}->search_distro;
     my $distro_id = $info->get_distro_id;
 
-    unless ( $self->{finder}->has_custom ) {
+    unless ( $self->{finder}->has_custom_file ) {
         my $base_class = 'Linux::Info::Distribution::OSRelease';
 
         if ( exists $os_release_distros{$distro_id} ) {

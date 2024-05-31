@@ -4,9 +4,11 @@ use warnings;
 use strict;
 use Hash::Util qw(lock_hash);
 use Carp       qw(confess);
-use Class::XSAccessor
-  setters           => { set_config_dir => 'config_dir', },
-  exists_predicates => { has_custom     => 'custom_source' };
+use Class::XSAccessor exists_predicates => {
+    has_custom_dir  => 'custom_source_dir',
+    has_os_release  => 'os_release',
+    has_custom_file => 'custom_file'
+};
 use File::Spec;
 use constant DEFAULT_CONFIG_DIR => '/etc';
 
@@ -79,7 +81,7 @@ C<search_distro> method. If "false" (0), each call of C<search_distro> will
 invalidate the cache and files will be searched and parsed.
 
 The default value is "false" (0) and is probably what you want unless you
-want to rely on the cache or using C<has_distro_info> and C<has_custom>
+want to rely on the cache or using C<has_distro_info> and C<has_custom_dir>
 methods.
 
 =cut
@@ -104,7 +106,13 @@ Most useful for unit testing with mocks.
 
 =cut
 
-sub _config_dir {
+sub set_config_dir {
+    my ( $self, $dir ) = @_;
+    $self->{config_dir}        = $dir;
+    $self->{custom_source_dir} = 1;
+}
+
+sub _read_config_dir {
     my $self = shift;
     opendir( my $dh, $self->{config_dir} )
       or confess( 'Cannot read ' . $self->{config_dir} . ': ' . $! );
@@ -131,15 +139,19 @@ sub _osrelease_basic {
     );
 }
 
-sub _search_release_file {
-    my $self           = shift;
-    my $candidates_ref = $self->_config_dir;
-
-    my $os_release = (
+sub _default_os_release {
+    my $self = shift;
+    return (
         File::Spec->splitpath(
             Linux::Info::Distribution::OSRelease->DEFAULT_FILE
         )
     )[-1];
+}
+
+sub _search_release_file {
+    my $self           = shift;
+    my $candidates_ref = $self->_read_config_dir;
+    my $os_release     = $self->_default_os_release;
 
     foreach my $thing ( @{$candidates_ref} ) {
         my $file_path = $self->{config_dir} . '/' . $thing;
@@ -147,6 +159,7 @@ sub _search_release_file {
         if ( -f $file_path ) {
             if ( $os_release eq $thing ) {
                 $self->_osrelease_basic($file_path);
+                $self->{os_release} = 1;
                 last;
             }
 
@@ -154,7 +167,7 @@ sub _search_release_file {
                 $self->{distro_info} =
                   Linux::Info::Distribution::BasicInfo->new(
                     ( lc $release_files{$thing} ), $file_path, );
-                $self->{custom_source} = 1;
+                $self->{custom_file} = 1;
                 last;
             }
         }
@@ -191,6 +204,8 @@ sub search_distro {
     }
     else {
         $self->{distro_info} = undef;
+        delete $self->{custom_file};
+        delete $self->{os_release};
     }
 
     if ( $self->{config_dir} eq DEFAULT_CONFIG_DIR ) {
@@ -226,13 +241,24 @@ sub has_distro_info {
     return ( defined( $self->{distro_info} ) ) ? 1 : 0;
 }
 
-=head2 has_custom
+=head2 has_custom_dir
 
-Returns "true" (1) if the instance has cached distribution information
-retrieved from a custom file, in other words, not in the expected format of
-F</etc/os-release>.
+Returns "true" (1) if the instance is using a source directory different from
+F</etc>.
 
 Otherwise, returns "false" (0).
+
+=head2 has_custom_file
+
+Returns "true" (1) if the instance is using a distribution customized file (
+i.e. something diferent of F</etc/os-release>).
+
+Otherwise, returns "false" (0).
+
+=head2 has_os_release
+
+Returns "true" (1) if the instance is using F</etc/os-release> or a
+F<os-release> located in a customized source directory (see C<has_custom_dir>).
 
 =head1 EXPORTS
 

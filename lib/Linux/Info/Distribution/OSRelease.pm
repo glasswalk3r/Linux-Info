@@ -113,7 +113,7 @@ Optionally, accepts a string as the complete path to a file to be parsed.
 =cut
 
 sub parse_from_file {
-    return _parse( $_[1] )      if ( length( scalar(@_) ) == 2 );
+    return _parse( $_[1] )      if ( scalar(@_) == 2 );
     return _parse(DEFAULT_FILE) if ( $_[0] eq __PACKAGE__ );
     return _parse( $_[0] );
 }
