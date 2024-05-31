@@ -58,7 +58,7 @@ default one.
 
 Returns a hash reference, with all fields/values retrieve from the file.
 
-The fields, stored as keys, will be forced to be on lowercase.
+The fields, stored as keys, will be forced to be lowercase.
 
 =cut
 
