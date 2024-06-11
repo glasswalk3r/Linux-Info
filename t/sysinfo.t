@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 24;
+use Test::More;
 use Scalar::Util qw(looks_like_number);
 
 BEGIN { use_ok('Linux::Info::SysInfo') }
@@ -56,14 +56,21 @@ foreach my $method (@string_methods) {
 my $kernel = $obj->get_detailed_kernel;
 isa_ok( $kernel, 'Linux::Info::KernelRelease' );
 
+is( ref( $obj->get_interfaces ),
+    'ARRAY', "get_interfaces returns an array reference" )
+  or diag( explain( check_cpuinfo() ) );
+
 note(
 'tests implemented due report http://www.cpantesters.org/cpan/report/9ae1c364-7671-11e5-aad0-c5a10b3facc5'
 );
 
-SKIP: {
+my @cpu_methods = qw(get_pcpucount get_tcpucount );
 
-    skip 'ARM processors have a different interface on /proc/cpuinfo', 2
+SKIP: {
+    skip 'ARM processors have a different interface on /proc/cpuinfo',
+      ( 2 + scalar(@cpu_methods) )
       if ( $obj->get_model =~ /arm/i );
+    note('Testing with /proc/cpuinfo');
     ok(
         looks_like_number( $obj->get_proc_arch ),
         "get_proc_arch returns a number"
@@ -72,16 +79,31 @@ SKIP: {
         'ARRAY', "get_cpu_flags returns an array reference" )
       or diag( explain( check_cpuinfo() ) );
 
+    foreach my $method (@cpu_methods) {
+        ok( looks_like_number( $obj->$method ), "$method returns a number" );
+    }
 }
 
-foreach my $method (qw(get_pcpucount get_tcpucount )) {
-    ok( looks_like_number( $obj->$method ), "$method returns a number" )
-      or diag( explain( check_cpuinfo() ) );
-}
+foreach my $cpuinfo_sample ( @{ cpuinfo_samples() } ) {
+    note("Testing with sample $cpuinfo_sample");
+    my $instance = Linux::Info::SysInfo->new( { cpuinfo => $cpuinfo_sample } );
+    like( $obj->get_model, qr/\w+/, 'get_model returns some text' )
+      or diag( explain($instance) );
 
-is( ref( $obj->get_interfaces ),
-    'ARRAY', "get_interfaces returns an array reference" )
-  or diag( explain( check_cpuinfo() ) );
+    ok( looks_like_number( $instance->get_proc_arch ),
+        "get_proc_arch returns a number" )
+      or diag( explain( check_cpuinfo($cpuinfo_sample) ) );
+
+    is( ref( $instance->get_cpu_flags ),
+        'ARRAY', "get_cpu_flags returns an array reference" )
+      or diag( explain( check_cpuinfo($cpuinfo_sample) ) );
+
+    foreach my $method (qw(get_pcpucount get_tcpucount )) {
+        ok( looks_like_number( $instance->$method ),
+            "$method returns a number" )
+          or diag( explain( check_cpuinfo($cpuinfo_sample) ) );
+    }
+}
 
 my $obj2 = Linux::Info::SysInfo->new( { raw_time => 1 } );
 
@@ -91,14 +113,16 @@ foreach my $method (qw(get_uptime get_idletime)) {
     ok( looks_like_number( $obj2->$method ), "$method returns a number" );
 }
 
+done_testing;
+
 sub check_cpuinfo {
-    my $file = '/proc/cpuinfo';
+    my $file = shift || '/proc/cpuinfo';
     local $/ = undef;
     my $all_lines = "\nFailed to properly parse information below:\n";
     open( my $in, '<', $file ) or die "cannot read $file: $!";
     $all_lines .= <$in>;
     close($in);
-    return \$all_lines;
+    return $all_lines;
 }
 
 sub check_mainline_version {
@@ -107,4 +131,19 @@ sub check_mainline_version {
     # undef is valid
     return 1 unless ($value);
     return ( $value =~ /[\w\.\-]+/ );
+}
+
+sub cpuinfo_samples {
+    my $dir = 't/samples/cpu';
+    opendir( my $in, $dir ) or die "Cannot read $dir: $!";
+    my @samples;
+
+    while ( readdir $in ) {
+        next if ( ( $_ eq '.' ) or ( $_ eq '..' ) );
+        push( @samples, "$dir/$_" );
+    }
+
+    closedir $in;
+
+    return \@samples;
 }

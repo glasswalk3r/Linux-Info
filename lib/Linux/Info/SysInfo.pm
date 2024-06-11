@@ -91,22 +91,33 @@ sub new {
       : ( $raw_time = 0 );
 
     my %self = (
-        files => {
-            path     => '/proc',
-            meminfo  => 'meminfo',
-            sysinfo  => 'sysinfo',
-            cpuinfo  => 'cpuinfo',
-            uptime   => 'uptime',
-            hostname => 'sys/kernel/hostname',
-            domain   => 'sys/kernel/domainname',
-            kernel   => 'sys/kernel/ostype',
-            release  => 'sys/kernel/osrelease',
-            version  => 'version',
-            netdev   => 'net/dev',
-        },
-        arch     => ( uname() )[4],
+        arch     => ( uname() )[4],    # TODO: useless?
         raw_time => $raw_time,
+        files    => {},
     );
+
+    my $default_root  = '/proc';
+    my %default_files = (
+        meminfo  => 'meminfo',
+        sysinfo  => 'sysinfo',
+        cpuinfo  => 'cpuinfo',
+        uptime   => 'uptime',
+        hostname => 'sys/kernel/hostname',
+        domain   => 'sys/kernel/domainname',
+        kernel   => 'sys/kernel/ostype',
+        release  => 'sys/kernel/osrelease',
+        version  => 'version',
+        netdev   => 'net/dev',
+    );
+
+    foreach my $info ( keys %default_files ) {
+        if ( ( exists $opts_ref->{$info} ) and defined( $opts_ref->{$info} ) ) {
+            $self{files}->{$info} = $opts_ref->{$info};
+        }
+        else {
+            $self{files}->{$info} = $default_root . '/' . $default_files{$info};
+        }
+    }
 
     my $self = bless \%self, $class;
 
@@ -254,17 +265,16 @@ sub get_detailed_kernel {
 }
 
 sub _set_common {
-    my $self  = shift;
-    my $class = ref($self);
-    my $file  = $self->{files};
+    my $self     = shift;
+    my $class    = ref($self);
+    my $file_ref = $self->{files};
 
     for my $attrib (qw(hostname domain kernel release version)) {
-        my $filename =
-          $file->{path} ? "$file->{path}/$file->{$attrib}" : $file->{$attrib};
+        my $filename = $file_ref->{$attrib};
         open my $fh, '<', $filename
-          or croak "$class: unable to open $filename: $!";
+          or croak "Unable to read $filename: $!";
         $self->{$attrib} = <$fh>;
-        chomp( $self->{$attrib} );
+        chomp $self->{$attrib};
         close($fh);
     }
 
@@ -275,8 +285,7 @@ sub _set_meminfo {
     my $class = ref($self);
     my $file  = $self->{files};
 
-    my $filename =
-      $file->{path} ? "$file->{path}/$file->{meminfo}" : $file->{meminfo};
+    my $filename = $file->{meminfo};
     open my $fh, '<', $filename
       or croak "$class: unable to open $filename ($!)";
     my $mem_regex  = qr/^MemTotal:\s+(\d+ \w+)/;
@@ -297,17 +306,16 @@ sub _set_meminfo {
 }
 
 sub _set_cpuinfo {
-    my $self  = shift;
-    my $class = ref($self);
-    my $file  = $self->{files};
+    my $self     = shift;
+    my $class    = ref($self);
+    my $file_ref = $self->{files};
     my ( %cpu, $phyid );
 
     $self->{tcpucount} = 0;
+    my $filename = $file_ref->{cpuinfo};
 
-    my $filename =
-      $file->{path} ? "$file->{path}/$file->{cpuinfo}" : $file->{cpuinfo};
     open my $fh, '<', $filename
-      or croak "$class: unable to open $filename ($!)";
+      or croak "Unable to read $filename: $!";
 
     # default value for hyper threading
     $self->{multithread} = 0;
@@ -385,8 +393,7 @@ sub _set_interfaces {
     my $file  = $self->{files};
     my @iface = ();
 
-    my $filename =
-      $file->{path} ? "$file->{path}/$file->{netdev}" : $file->{netdev};
+    my $filename = $file->{netdev};
     open my $fh, '<', $filename
       or croak "$class: unable to open $filename ($!)";
     { my $head = <$fh>; }
@@ -406,8 +413,7 @@ sub _set_time {
     my $class = ref($self);
     my $file  = $self->{files};
 
-    my $filename =
-      $file->{path} ? "$file->{path}/$file->{uptime}" : $file->{uptime};
+    my $filename = $file->{uptime};
     open my $fh, '<', $filename
       or croak "$class: unable to open $filename ($!)";
     ( $self->{uptime}, $self->{idletime} ) = split /\s+/, <$fh>;
