@@ -92,15 +92,11 @@ foreach my $method (qw(get_uptime get_idletime)) {
 }
 
 sub check_cpuinfo {
-    note('Looks like /proc/cpuinfo is missing the "flags" field');
-    note(
-'Detect issues with flags field as http://www.cpantesters.org/cpan/report/743cb560-6092-11e5-b084-8fcd0b3facc5'
-    );
-
     my $file = '/proc/cpuinfo';
     local $/ = undef;
+    my $all_lines = "\nFailed to properly parse information below:\n";
     open( my $in, '<', $file ) or die "cannot read $file: $!";
-    my $all_lines = <$in>;
+    $all_lines .= <$in>;
     close($in);
     return \$all_lines;
 }
