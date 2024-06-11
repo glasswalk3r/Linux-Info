@@ -279,12 +279,16 @@ sub _set_meminfo {
       $file->{path} ? "$file->{path}/$file->{meminfo}" : $file->{meminfo};
     open my $fh, '<', $filename
       or croak "$class: unable to open $filename ($!)";
+    my $mem_regex  = qr/^MemTotal:\s+(\d+ \w+)/;
+    my $swap_regex = qr/^SwapTotal:\s+(\d+ \w+)/;
 
     while ( my $line = <$fh> ) {
-        if ( $line =~ /^MemTotal:\s+(\d+ \w+)/ ) {
+        if ( $line =~ $mem_regex ) {
             $self->{mem} = $1;
+            next;
         }
-        elsif ( $line =~ /^SwapTotal:\s+(\d+ \w+)/ ) {
+
+        if ( $line =~ $swap_regex ) {
             $self->{swap} = $1;
         }
     }
