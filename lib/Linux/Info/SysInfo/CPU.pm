@@ -22,6 +22,7 @@ sub new {
         tcpucount    => 0,
         cpu_flags    => [],
         architecture => undef,
+        bogomips     => undef,
     };
     $source_file = '/proc/cpuinfo'
       unless ( ( defined($source_file) ) and ( $source_file ne '' ) );

@@ -9,4 +9,7 @@ use Class::XSAccessor getters => {};
 
 # ABSTRACT: Collects CPU information from /proc/cpuinfo
 
+# https://developer.arm.com/documentation
+# https://github.com/util-linux/util-linux/pull/564/files
+
 1;
