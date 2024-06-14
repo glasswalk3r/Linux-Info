@@ -4,8 +4,7 @@ use warnings;
 use Carp qw(croak);
 use POSIX 1.15;
 use Hash::Util qw(lock_keys);
-use Class::XSAccessor
-  getters => {
+use Class::XSAccessor getters => {
     get_raw_time   => 'raw_time',
     get_hostname   => 'hostname',
     get_domain     => 'domain',
@@ -14,19 +13,17 @@ use Class::XSAccessor
     get_version    => 'version',
     get_mem        => 'mem',
     get_swap       => 'swap',
-    get_pcpucount  => 'pcpucount',
-    get_tcpucount  => 'tcpucount',
     get_interfaces => 'interfaces',
     get_arch       => 'arch',
-    get_proc_arch  => 'proc_arch',
     get_cpu_flags  => 'cpu_flags',
     get_uptime     => 'uptime',
     get_idletime   => 'idletime',
     get_model      => 'model',
-  },
-  exists_predicates => { has_multithread => 'multithread', };
+};
 
 use Linux::Info::KernelFactory;
+use Linux::Info::SysInfo::CPU::Intel;
+use Linux::Info::SysInfo::CPU::Arm;
 
 # VERSION
 
@@ -198,6 +195,22 @@ attributes with their original (raw) format, or formatted ones.
 
 =cut
 
+sub get_proc_arch {
+    return shift->{cpu}->get_arch;
+}
+
+sub has_multithread {
+    return shift->{cpu}->has_multithread;
+}
+
+sub get_pcpucount {
+    return shift->{cpu}->get_cores;
+}
+
+sub get_tcpucount {
+    return shift->{cpu}->get_threads;
+}
+
 sub _set {
 
     my $self  = shift;
@@ -321,69 +334,31 @@ sub _set_cpuinfo {
     $self->{multithread} = 0;
 
     # model name      : Intel(R) Core(TM) i5-4300M CPU @ 2.60GHz
-    my $model_regex = qr/^model\sname\s+\:\s(.*)/;
+    my $intel_regex = qr/^model\sname\s+\:\sIntel/;
 
     # Processor	: ARMv7 Processor rev 4 (v7l)
-    my $arm_regex = qr/^Processor\s+\:\s(.*)/;
+    my $arm_regex = qr/^Processor\t\:\sARM/;
+    my $model;
 
-    while ( my $line = <$fh> ) {
+  LINE: while ( my $line = <$fh> ) {
         chomp($line);
 
-      CASE: {
+        if ( $line =~ $intel_regex ) {
+            $model = 'Intel';
+            last LINE;
+        }
 
-            if ( ( $line =~ $model_regex ) or ( $line =~ $arm_regex ) ) {
-                $self->{model} = $1;
-            }
-
-            if ( $line =~ /^physical\s+id\s*:\s*(\d+)/ ) {
-                $phyid = $1;
-                $cpu{$phyid}{count}++;
-                last CASE;
-            }
-
-            if ( $line =~ /^core\s+id\s*:\s*(\d+)/ ) {
-                $cpu{$phyid}{cores}{$1}++;
-                last CASE;
-            }
-
-            if ( $line =~ /^processor\s*:\s*\d+/ ) {    # x86
-                $self->{tcpucount}++;
-                last CASE;
-            }
-
-            if ( $line =~ /^# processors\s*:\s*(\d+)/ ) {    # s390
-                $self->{tcpucount} = $1;
-                last CASE;
-            }
-
-            if ( $line =~ /^flags\s+\:/ ) {
-
-                last CASE if ( $self->get_cpu_flags );   # no use to repeat this
-
-                my ( $attribute, $value ) = split( /\s+:\s/, $line );
-                my @flags = split( /\s/, $value );
-
-                $self->{cpu_flags} = \@flags;
-
-                #long mode
-                if ( $value =~ /\slm\s/ ) {
-                    $self->{proc_arch} = 64;
-                }
-                else {
-                    $self->{proc_arch} = 32;
-                }
-
-                #hyper threading
-                if ( $value =~ /\sht\s/ ) {
-                    $self->{multithread} = 1;
-                }
-
-                last CASE;
-            }
+        if ( $line =~ $arm_regex ) {
+            $model = 'Arm';
+            last LINE;
         }
     }
 
     close($fh);
+
+    # in some cases /etc/cpuinfo on Arm doesn't have a line defining it
+    $model = 'Arm' unless ( defined($model) );
+
     $self->{pcpucount} = scalar( keys(%cpu) ) || $self->{tcpucount};
 }
 
