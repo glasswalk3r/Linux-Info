@@ -13,6 +13,7 @@ use Class::XSAccessor
     get_flags    => 'flags',
     get_bogomips => 'bogomips',
     get_bugs     => 'bugs',
+    get_vendor   => 'vendor',
   },
   exists_predicates => { has_multithread => 'multithread', };
 
@@ -73,6 +74,7 @@ sub new {
         architecture => undef,
         bogomips     => 0,
         bugs         => Set::Tiny->new,
+        vendor       => undef,
     };
     $source_file = '/proc/cpuinfo'
       unless ( ( defined($source_file) ) and ( $source_file ne '' ) );

@@ -2,7 +2,6 @@ package Linux::Info::SysInfo::CPU::Intel;
 use strict;
 use warnings;
 use Carp qw(confess);
-use Class::XSAccessor getters => {};
 
 # VERSION
 
@@ -18,6 +17,9 @@ sub _parse {
     my $core_regex      = qr/^core\s+id\s*:\s*(\d+)/;
     my $thread_regex    = qr/^processor\s*:\s*\d+/;
     my $flags_regex     = qr/^flags\s+\:/;
+
+    # vendor_id       : GenuineIntel
+    my $vendor_regex = qr/^vendor_id\s+\:\s(\w+)/;
 
     # bogomips        : 4784.43
     my $bogo_regex = qr/^bogomips\s+\:\s(\d+\.\d+)/;
@@ -36,6 +38,12 @@ sub _parse {
 
         if ( $line =~ $bogo_regex ) {
             $self->{bogomips} = $1;
+            next LINE;
+        }
+
+        if ( $line =~ $vendor_regex ) {
+            $self->{vendor} = $1;
+            next LINE;
         }
 
         if ( $line =~ $processor_regex ) {
