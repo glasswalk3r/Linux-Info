@@ -1,8 +1,7 @@
 package Linux::Info::SysInfo::CPU::Intel;
 use strict;
 use warnings;
-use Carp       qw(confess);
-use Hash::Util qw(lock_keys unlock_keys);
+use Carp qw(confess);
 use Class::XSAccessor getters => {};
 
 # VERSION
