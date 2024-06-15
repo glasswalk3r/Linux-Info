@@ -7,7 +7,6 @@ use Class::XSAccessor
   getters => {
     get_cores     => 'cores',
     get_threads   => 'threads',
-    get_bugs      => 'bugs',
     get_frequency => 'frequency',
     get_cache     => 'cache',
   },
@@ -24,6 +23,11 @@ my $vendor_regex = qr/^vendor_id\s+\:\s(\w+)/;
 
 sub processor_regex {
     return $vendor_regex;
+}
+
+sub get_bugs {
+    my @bugs = shift->{bugs}->members;
+    return \@bugs;
 }
 
 sub _custom_attribs {
@@ -79,6 +83,9 @@ sub _parse {
 
         if ( $line =~ $model_regex ) {
             $self->{model} = $1;
+            $self->{model} =~ tr/(R)//d;
+            $self->{model} =~ tr/(TM)//d;
+            $self->{model} =~ s/\s{2,}/ /g;
             next LINE;
         }
 
@@ -169,12 +176,6 @@ sub _set_hyperthread {
     else {
         $self->{multithread} = 0;
     }
-}
-
-# ???
-sub new {
-    my $class = shift;
-    my $self  = $class->SUPER::new(@_);
 }
 
 1;
