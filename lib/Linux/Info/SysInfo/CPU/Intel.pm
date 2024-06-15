@@ -5,9 +5,11 @@ use Carp qw(confess);
 use Set::Tiny 0.04;
 use Class::XSAccessor
   getters => {
-    get_cores   => 'cores',
-    get_threads => 'threads',
-    get_bugs    => 'bugs',
+    get_cores     => 'cores',
+    get_threads   => 'threads',
+    get_bugs      => 'bugs',
+    get_frequency => 'frequency',
+    get_cache     => 'cache',
   },
   exists_predicates => { has_multithread => 'multithread', };
 
@@ -30,6 +32,16 @@ sub _custom_attribs {
     $self->{cores}       = 0;
     $self->{threads}     = 0;
     $self->{bugs}        = Set::Tiny->new;
+    $self->{frequency}   = undef;
+    $self->{cache}       = undef;
+}
+
+sub _parse_bugs {
+    my ( $self, $line ) = @_;
+    $self->{line} = $line;
+    my $value = $self->_parse_list;
+    $self->{bugs}->insert( split( /\s/, $value ) );
+    $self->{line} = undef;
 }
 
 sub _parse {
@@ -48,6 +60,13 @@ sub _parse {
 
     # bugs            : apic_c1e spectre_v1 spectre_v2 spec_store_bypass
     my $bugs_regex = qr/^bugs\s+\:\s/;
+
+    # cpu MHz         : 1796.992
+    my $frequency_regex = qr/^cpu\s(\wHz)\s+\:\s(\d+\.\d+)/;
+
+    # cache size      : 512 KB
+    my $cache_regex = qr/^cache\ssize\s+\:\s(.*)/;
+
     my %processors;
     my $threads       = 0;
     my $flags_defined = 0;
@@ -73,6 +92,11 @@ sub _parse {
             next LINE;
         }
 
+        if ( $line =~ $cache_regex ) {
+            $self->{cache} = $1;
+            next LINE;
+        }
+
         if ( $line =~ $processor_regex ) {
 
             # in order for this to work, it is expected that the physical line
@@ -89,6 +113,11 @@ sub _parse {
 
         if ( $line =~ $thread_regex ) {
             $threads++;
+            next LINE;
+        }
+
+        if ( $line =~ $frequency_regex ) {
+            $self->{frequency} = "$2 $1";
             next LINE;
         }
 
@@ -142,10 +171,10 @@ sub _set_hyperthread {
     }
 }
 
+# ???
 sub new {
     my $class = shift;
     my $self  = $class->SUPER::new(@_);
-
 }
 
 1;
