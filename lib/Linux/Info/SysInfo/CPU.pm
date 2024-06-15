@@ -16,36 +16,38 @@ use Class::XSAccessor getters => {
 
 # ABSTRACT: Collects CPU information from /proc/cpuinfo
 
+my $override_error = 'This method must be overrided by subclasses';
+
 sub _set_proc_bits {
-    confess 'Must be overrided by subclasses';
+    confess $override_error;
 }
 
 sub _set_hyperthread {
-    confess 'Must be overrided by subclasses';
+    confess $override_error;
 }
 
 sub _parse {
-    confess 'Must be overrided by subclasses';
+    confess $override_error;
 }
 
 sub processor_regex {
-    confess 'Must be overrided by subclasses';
+    confess $override_error;
+}
+
+sub _custom_attribs {
+    confess $override_error;
+}
+
+sub get_cores {
+    confess $override_error;
+}
+
+sub get_threads {
+    confess $override_error;
 }
 
 sub _parse_list {
     return ( split( /\s+:\s/, shift->{line} ) )[1];
-}
-
-sub _custom_attribs {
-    confess 'Must be overrided by subclasses';
-}
-
-sub get_cores {
-    confess 'Must be overrided by subclasses';
-}
-
-sub get_threads {
-    confess 'Must be overrided by subclasses';
 }
 
 sub _parse_flags {
@@ -53,14 +55,6 @@ sub _parse_flags {
     $self->{line} = $line;
     my $value = $self->_parse_list;
     $self->{flags}->insert( split( /\s/, $value ) );
-    $self->{line} = undef;
-}
-
-sub _parse_bugs {
-    my ( $self, $line ) = @_;
-    $self->{line} = $line;
-    my $value = $self->_parse_list;
-    $self->{bugs}->insert( split( /\s/, $value ) );
     $self->{line} = undef;
 }
 
@@ -74,7 +68,7 @@ sub has_flag {
 }
 
 sub get_flags {
-    my @flags = shift->{flags}->members;
+    my @flags = sort( shift->{flags}->members );
     return \@flags;
 }
 
@@ -86,7 +80,6 @@ sub new {
         flags        => Set::Tiny->new,
         architecture => undef,
         bogomips     => 0,
-        bugs         => Set::Tiny->new,
         vendor       => undef,
     };
     $source_file = '/proc/cpuinfo'
