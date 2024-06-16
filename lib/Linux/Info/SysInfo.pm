@@ -370,9 +370,15 @@ sub _set_cpuinfo {
 
     close($fh);
 
-    confess
-'Failed to recognize the processor, submit the /proc/cpuinfo to this project as an issue'
-      unless ( defined($model) );
+    unless ( defined($model) ) {
+        open my $fh, '<', $filename or confess "Unable to read $filename: $!";
+        local $/ = undef;
+        my $data = <$fh>;
+        close($fh);
+
+        confess
+"Failed to recognize the processor, submit the /proc/cpuinfo to this project as an issue.\n$data";
+    }
 
     $self->{cpu} = "Linux::Info::SysInfo::CPU::$model"->new($filename);
 }
