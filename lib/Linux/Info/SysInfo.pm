@@ -1,7 +1,7 @@
 package Linux::Info::SysInfo;
 use strict;
 use warnings;
-use Carp qw(croak);
+use Carp qw(confess);
 use POSIX 1.15;
 use Hash::Util qw(lock_keys);
 use Class::XSAccessor getters => {
@@ -14,25 +14,22 @@ use Class::XSAccessor getters => {
     get_mem        => 'mem',
     get_swap       => 'swap',
     get_interfaces => 'interfaces',
-    get_arch       => 'arch',
-    get_cpu_flags  => 'cpu_flags',
     get_uptime     => 'uptime',
     get_idletime   => 'idletime',
-    get_model      => 'model',
 };
 
 use Linux::Info::KernelFactory;
 use Linux::Info::SysInfo::CPU::Intel;
 use Linux::Info::SysInfo::CPU::Arm;
+use Linux::Info::SysInfo::CPU::S390;
 
 # VERSION
 
 my @_attribs = (
-    'raw_time',  'hostname',  'domain',     'kernel',
-    'release',   'version',   'mem',        'swap',
-    'pcpucount', 'tcpucount', 'interfaces', 'arch',
-    'proc_arch', 'cpu_flags', 'uptime',     'idletime',
-    'model',     'mainline_version',
+    'raw_time',   'hostname', 'domain', 'kernel',
+    'release',    'version',  'mem',    'swap',
+    'interfaces', 'arch',     'uptime', 'idletime',
+    'model',      'mainline_version',
 );
 
 # ABSTRACT: Collect linux system information.
@@ -175,7 +172,7 @@ Returns the total number of CPUs (cores, hyper threading).
 
 Returns the interfaces of the system.
 
-=head2 get_arch
+=head2 get_proc_arch
 
 Returns the processor architecture (like C<uname -m>).
 
@@ -211,8 +208,15 @@ sub get_tcpucount {
     return shift->{cpu}->get_threads;
 }
 
-sub _set {
+sub get_model {
+    return shift->{cpu}->get_model;
+}
 
+sub get_cpu_flags {
+    return shift->{cpu}->get_flags;
+}
+
+sub _set {
     my $self  = shift;
     my $class = ref $self;
     my $file  = $self->{files};
@@ -250,11 +254,12 @@ sub is_multithread {
 
 =head2 get_proc_arch
 
-This method will return an integer as the architecture of the CPUs: 32 or 64 bits, depending on the flags
-retrieve for one CPU.
+This method will return an integer as the architecture of the CPUs: 32 or 64
+bits, depending on the flags retrieve for one CPU.
 
-It is assumed that all CPUs will have the same flags, so this method will consider only the flags returned
-by the CPU with "core id" equal to 0 (in other words, the first CPU found).
+It is assumed that all CPUs will have the same flags, so this method will
+consider only the flags returned by the CPU with "core id" equal to 0 (in
+other words, the first CPU found).
 
 =head2 get_cpu_flags
 
@@ -285,7 +290,7 @@ sub _set_common {
     for my $attrib (qw(hostname domain kernel release version)) {
         my $filename = $file_ref->{$attrib};
         open my $fh, '<', $filename
-          or croak "Unable to read $filename: $!";
+          or confess "Unable to read $filename: $!";
         $self->{$attrib} = <$fh>;
         chomp $self->{$attrib};
         close($fh);
@@ -300,7 +305,7 @@ sub _set_meminfo {
 
     my $filename = $file->{meminfo};
     open my $fh, '<', $filename
-      or croak "$class: unable to open $filename ($!)";
+      or confess "$class: unable to open $filename ($!)";
     my $mem_regex  = qr/^MemTotal:\s+(\d+ \w+)/;
     my $swap_regex = qr/^SwapTotal:\s+(\d+ \w+)/;
 
@@ -322,44 +327,49 @@ sub _set_cpuinfo {
     my $self     = shift;
     my $class    = ref($self);
     my $file_ref = $self->{files};
-    my ( %cpu, $phyid );
-
-    $self->{tcpucount} = 0;
     my $filename = $file_ref->{cpuinfo};
 
     open my $fh, '<', $filename
-      or croak "Unable to read $filename: $!";
+      or confess "Unable to read $filename: $!";
 
     # default value for hyper threading
     $self->{multithread} = 0;
 
-    # model name      : Intel(R) Core(TM) i5-4300M CPU @ 2.60GHz
-    my $intel_regex = qr/^model\sname\s+\:\sIntel/;
-
-    # Processor	: ARMv7 Processor rev 4 (v7l)
-    my $arm_regex = qr/^Processor\t\:\sARM/;
+    my $intel_regex = Linux::Info::SysInfo::CPU::Intel->processor_regex;
+    my $arm_regex   = Linux::Info::SysInfo::CPU::Arm->processor_regex;
+    my $s390_regex  = Linux::Info::SysInfo::CPU::S390->processor_regex;
     my $model;
 
   LINE: while ( my $line = <$fh> ) {
         chomp($line);
 
         if ( $line =~ $intel_regex ) {
-            $model = 'Intel';
-            last LINE;
+            if ( $1 eq 'GenuineIntel' ) {
+                $model = 'Intel';
+                last LINE;
+            }
         }
 
         if ( $line =~ $arm_regex ) {
             $model = 'Arm';
             last LINE;
         }
+
+        if ( $line =~ $s390_regex ) {
+            if ( $1 eq 'IBM/S390' ) {
+                $model = 'S390';
+                last LINE;
+            }
+        }
     }
 
     close($fh);
 
-    # in some cases /etc/cpuinfo on Arm doesn't have a line defining it
-    $model = 'Arm' unless ( defined($model) );
+    confess
+'Failed to recognize the processor, submit the /proc/cpuinfo to this project as an issue'
+      unless ( defined($model) );
 
-    $self->{pcpucount} = scalar( keys(%cpu) ) || $self->{tcpucount};
+    $self->{cpu} = "Linux::Info::SysInfo::CPU::$model"->new($filename);
 }
 
 sub _set_interfaces {
@@ -370,7 +380,7 @@ sub _set_interfaces {
 
     my $filename = $file->{netdev};
     open my $fh, '<', $filename
-      or croak "$class: unable to open $filename ($!)";
+      or confess "$class: unable to open $filename ($!)";
     { my $head = <$fh>; }
 
     while ( my $line = <$fh> ) {
@@ -390,7 +400,7 @@ sub _set_time {
 
     my $filename = $file->{uptime};
     open my $fh, '<', $filename
-      or croak "$class: unable to open $filename ($!)";
+      or confess "$class: unable to open $filename ($!)";
     ( $self->{uptime}, $self->{idletime} ) = split /\s+/, <$fh>;
     close $fh;
 

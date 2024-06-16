@@ -7,16 +7,16 @@ BEGIN { use_ok('Linux::Info::SysInfo') }
 
 my $obj     = new_ok('Linux::Info::SysInfo');
 my @methods = (
-    'get_raw_time',    'get_hostname',
-    'get_domain',      'get_kernel',
-    'get_release',     'get_version',
-    'get_mem',         'get_swap',
-    'get_pcpucount',   'get_tcpucount',
-    'get_interfaces',  'get_arch',
-    'get_proc_arch',   'get_cpu_flags',
-    'get_uptime',      'get_idletime',
-    'is_multithread',  'get_model',
-    'has_multithread', 'get_detailed_kernel',
+    'get_raw_time',   'get_hostname',
+    'get_domain',     'get_kernel',
+    'get_release',    'get_version',
+    'get_mem',        'get_swap',
+    'get_pcpucount',  'get_tcpucount',
+    'get_interfaces', 'get_proc_arch',
+    'get_cpu_flags',  'get_uptime',
+    'get_idletime',   'is_multithread',
+    'get_model',      'has_multithread',
+    'get_detailed_kernel',
 );
 can_ok( $obj, @methods );
 
@@ -40,17 +40,18 @@ foreach my $f (@pf) {
 
 like( $obj->get_raw_time,   qr/^[01]$/, 'raw_time is boolean' );
 like( $obj->is_multithread, qr/^[01]$/, 'multithread is boolean' );
-note( 'Processor model is "' . $obj->get_model . '"' );
-like( $obj->get_model, qr/\w+/, 'get_model returns some text' );
 
 my @string_methods = (
     'get_hostname', 'get_domain', 'get_kernel', 'get_release',
-    'get_version',  'get_mem',    'get_swap',   'get_arch',
-    'get_uptime',   'get_idletime',
+    'get_version',  'get_mem',    'get_swap',   'get_uptime',
+    'get_idletime', 'get_model'
 );
 
+my $string_regex = qr/\w+/;
+
 foreach my $method (@string_methods) {
-    like( $obj->$method, qr/\w+/, "$method returns a string" );
+    like( $obj->$method, $string_regex, "$method returns a string" )
+      or diag( explain( $obj->{cpu} ) );
 }
 
 my $kernel = $obj->get_detailed_kernel;
@@ -73,14 +74,15 @@ SKIP: {
     note('Testing with /proc/cpuinfo');
     ok(
         looks_like_number( $obj->get_proc_arch ),
-        "get_proc_arch returns a number"
+        'get_proc_arch returns a number'
     ) or diag( explain( check_cpuinfo() ) );
     is( ref( $obj->get_cpu_flags ),
         'ARRAY', "get_cpu_flags returns an array reference" )
       or diag( explain( check_cpuinfo() ) );
 
     foreach my $method (@cpu_methods) {
-        ok( looks_like_number( $obj->$method ), "$method returns a number" );
+        ok( looks_like_number( $obj->$method ), "$method returns a number" )
+          or diag( explain $obj->$method );
     }
 }
 
