@@ -11,15 +11,9 @@ use parent 'Linux::Info::SysInfo::CPU';
 
 # ABSTRACT: Collects Arm based CPU information from /proc/cpuinfo
 
-# CPU architecture: 8
-my $processor_regex = qr/^CPU\sarchitecture\:\s8$/;
-
-sub processor_regex {
-    return $processor_regex;
-}
-
 =head1 SYNOPSIS
 
+See L<Linux::Info::SysInfo> C<get_cpu> method.
 
 =head1 DESCRIPTION
 
@@ -61,26 +55,20 @@ hexadecimal for "CPU implementer" and a C<warn> will be generated.
 One good source to search for more information is the
 L<OpenBenchmarking|https://openbenchmarking.org/> website.
 
-=head1 SEE ALSO
+=head1 METHODS
 
-=over
+=head2 processor_regex
 
-=item *
-
-https://developer.arm.com/documentation
-
-=item *
-
-L<lscpu patch|https://github.com/util-linux/util-linux/pull/564/files> that
-defines the translation of hexadecimal values to ARM processor implementer.
-
-=item *
-
-L<https://openbenchmarking.org/>
-
-=back
+Returns a regular expression that identifies the processor that is being read.
 
 =cut
+
+# CPU architecture: 8
+my $processor_regex = qr/^CPU\sarchitecture\:\s8$/;
+
+sub processor_regex {
+    return $processor_regex;
+}
 
 my %vendors = (
     '0x41' => 'ARM',
@@ -235,12 +223,57 @@ sub _custom_attribs {
 
 sub _set_hyperthread { }
 
+=head2 get_cores
+
+Returns the number of cores of the processor.
+
+=cut
+
 sub get_cores {
     return 0;
 }
 
+=head2 get_threads
+
+Returns the number of threads of the processor.
+
+=head2 get_part
+
+Return an hexadecimal of the CPU part.
+
+=head2 get_revision
+
+Return an hexadecimal of the CPU revision.
+
+=head2 get_variant
+
+Return an hexadecimal of the CPU variant.
+
+=cut
+
 sub get_threads {
     return 0;
 }
+
+=head1 SEE ALSO
+
+=over
+
+=item *
+
+https://developer.arm.com/documentation
+
+=item *
+
+L<lscpu patch|https://github.com/util-linux/util-linux/pull/564/files> that
+defines the translation of hexadecimal values to ARM processor implementer.
+
+=item *
+
+L<https://openbenchmarking.org/>
+
+=back
+
+=cut
 
 1;

@@ -16,6 +16,7 @@ use Class::XSAccessor getters => {
     get_interfaces => 'interfaces',
     get_uptime     => 'uptime',
     get_idletime   => 'idletime',
+    get_cpu        => 'cpu',
 };
 
 use Linux::Info::KernelFactory;
@@ -189,6 +190,10 @@ Returns the processor name and model.
 
 Returns "true" (1) or "false" (0) if the instance is enabled to present time
 attributes with their original (raw) format, or formatted ones.
+
+=head2 get_cpu
+
+Returns a instance of L<Linux::Info::SysInfo::CPU> sub classes.
 
 =cut
 

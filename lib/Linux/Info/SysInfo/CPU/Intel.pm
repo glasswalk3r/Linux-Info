@@ -3,14 +3,12 @@ use strict;
 use warnings;
 use Carp qw(confess);
 use Set::Tiny 0.04;
-use Class::XSAccessor
-  getters => {
+use Class::XSAccessor getters => {
     get_cores     => 'cores',
     get_threads   => 'threads',
     get_frequency => 'frequency',
     get_cache     => 'cache',
-  },
-  exists_predicates => { has_multithread => 'multithread', };
+};
 
 use parent 'Linux::Info::SysInfo::CPU';
 
@@ -18,12 +16,35 @@ use parent 'Linux::Info::SysInfo::CPU';
 
 # ABSTRACT: Collects Intel based CPU information from /proc/cpuinfo
 
+=head1 SYNOPSIS
+
+See L<Linux::Info::SysInfo> C<get_cpu> method.
+
+=head1 DESCRIPTION
+
+This is a subclass of L<Linux::Info::SysInfo::CPU>, with specific code to parse
+Intel format of L</proc/cpuinfo>.
+
+=head1 METHODS
+
+=head2 processor_regex
+
+Returns a regular expression that identifies the processor that is being read.
+
+=cut
+
 # vendor_id       : GenuineIntel
 my $vendor_regex = qr/^vendor_id\s+\:\s(\w+)/;
 
 sub processor_regex {
     return $vendor_regex;
 }
+
+=head2 get_bugs
+
+Returns an array reference with all the bugs codes of this processor.
+
+=cut
 
 sub get_bugs {
     my @bugs = shift->{bugs}->members;
@@ -177,5 +198,33 @@ sub _set_hyperthread {
         $self->{multithread} = 0;
     }
 }
+
+=head2 has_multithread
+
+Returns "true" (1) or "false" (0) if the CPU has multithreading.
+
+=cut
+
+sub has_multithread {
+    return shift->{multithread};
+}
+
+=head2 get_cores
+
+Returns an integer of the number of cores available in the CPU.
+
+=head2 get_threads
+
+Returns an integer of the number of threads available per core in the CPU.
+
+=head2 get_frequency
+
+Returns a string with the maximum value of frequency of the CPU.
+
+=head2 get_cache
+
+Returns a string with the value of the cache of the CPU.
+
+=cut
 
 1;

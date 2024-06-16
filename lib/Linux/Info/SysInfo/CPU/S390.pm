@@ -14,6 +14,23 @@ use parent 'Linux::Info::SysInfo::CPU';
 
 # ABSTRACT: Collects s390 based CPU information from /proc/cpuinfo
 
+=head1 SYNOPSIS
+
+See L<Linux::Info::SysInfo> C<get_cpu> method.
+
+=head1 DESCRIPTION
+
+This is a subclass of L<Linux::Info::SysInfo::CPU>, with specific code to parse
+the IBM s390 processor format of L</proc/cpuinfo>.
+
+=head1 METHODS
+
+=head2 processor_regex
+
+Returns a regular expression that identifies the processor that is being read.
+
+=cut
+
 # vendor_id       : IBM/S390
 my $vendor_regex = qr/^vendor_id\s+\:\s(.*)/;
 
@@ -43,12 +60,51 @@ sub _set_hyperthread {
     }
 }
 
+=head2 has_multithread
+
+Returns "true" (1) or "false" (0) if the CPU has multithreading.
+
+=cut
+
 sub has_multithread {
     return shift->{multithread};
 }
 
+=head2 get_cores
+
+Returns an integer of the number of cores available in the CPU.
+
+=cut
+
 sub get_cores {
     return 0;
+}
+
+=head2 get_threads
+
+Returns an integer of the number of threads available per core in the CPU.
+
+=head2 get_frequency
+
+Returns a string with the maximum value of frequency of the CPU.
+
+=head2 get_cache
+
+Returns a hash reference.
+
+Each key is the name of a cache, and the value is also a hash reference with
+the attributes of each cache.
+
+=head2 get_facilities
+
+Returns an array reference with the list of the facilities the processor has.
+
+=cut
+
+sub get_facilities {
+    my $self       = shift;
+    my @facilities = sort { $a <=> $b } $self->{facilities}->members;
+    return \@facilities;
 }
 
 sub _custom_attribs {
@@ -67,19 +123,6 @@ sub _parse_facilities {
     $self->{facilities}->insert( split( /\s/, $value ) );
     $self->{line} = undef;
 }
-
-sub get_facilities {
-    my $self       = shift;
-    my @facilities = sort { $a <=> $b } $self->{facilities}->members;
-    return \@facilities;
-}
-
-# cache0 : level=1 type=Data scope=Private size=128K line_size=256 associativity=8
-# cache1 : level=1 type=Instruction scope=Private size=96K line_size=256 associativity=6
-# cache2 : level=2 type=Data scope=Private size=2048K line_size=256 associativity=8
-# cache3 : level=2 type=Instruction scope=Private size=2048K line_size=256 associativity=8
-# cache4 : level=3 type=Unified scope=Shared size=65536K line_size=256 associativity=16
-# cache5 : level=4 type=Unified scope=Shared size=491520K line_size=256 associativity=30
 
 sub _parse_cache {
     my ( $self, $line ) = @_;

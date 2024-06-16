@@ -16,6 +16,24 @@ use Class::XSAccessor getters => {
 
 # ABSTRACT: Collects CPU information from /proc/cpuinfo
 
+=head2 SYNOPSIS
+
+Don't create a instance of this class, you will be able to do it only with
+subclasses from it.
+
+See L<Linux::Info::SysInfo> methods to retrieve a instance of subclass from
+the default L</proc/cpuinfo> file.
+
+=head2 DESCRIPTION
+
+This class provides an abstraction of general attributes a processor used by
+Linux has.
+
+It also defines an expected interface for subclasses, with methods that need
+to be override in order to avoid an error with L<Carp> C<confess>.
+
+=cut
+
 my $override_error = 'This method must be overrided by subclasses';
 
 sub _set_proc_bits {
@@ -30,6 +48,17 @@ sub _parse {
     confess $override_error;
 }
 
+=head1 METHODS
+
+=head2 processor_regex
+
+Returns a regular expression that identifies the processor that is being read.
+
+This is used to identify which subclasses will be required to parse the file
+content.
+
+=cut
+
 sub processor_regex {
     confess $override_error;
 }
@@ -38,9 +67,21 @@ sub _custom_attribs {
     confess $override_error;
 }
 
+=head2 get_cores
+
+Returns an integer with the number of cores available in the processor.
+
+=cut
+
 sub get_cores {
     confess $override_error;
 }
+
+=head2 get_threads
+
+Returns an integer with the number of hyper threads available in the processor.
+
+=cut
 
 sub get_threads {
     confess $override_error;
@@ -58,6 +99,15 @@ sub _parse_flags {
     $self->{line} = undef;
 }
 
+=head2 has_flag
+
+Expects as parameter a string with the name of the flag.
+
+Return "true" (1) or "false" (0) if the processor has that specific flag
+associated.
+
+=cut
+
 sub has_flag {
     my ( $self, $flag ) = @_;
 
@@ -67,10 +117,57 @@ sub has_flag {
     return 0;
 }
 
+=head2 get_flags
+
+Returns all flags related to the processor as a array reference.
+
+=cut
+
 sub get_flags {
     my @flags = sort( shift->{flags}->members );
     return \@flags;
 }
+
+=head2 new
+
+Creates and return a new instance of this class.
+
+Expects as parameter a single string as the path to an alternate file instead
+of using the default F</proc/cpuinfo>. This is must useful for unit testing and
+is not required.
+
+=head2 get_arch
+
+Returns a integer representing if the process is 32 or 64 bits.
+
+=head2 get_bogomips
+
+Returns a decimal number representing the bogomips of the processor.
+
+=head2 get_model
+
+Returns a string with the CPU model.
+
+=head2 get_source_file
+
+Returns the actual location of the cpuinfo read to create a instance of this
+class.
+
+=head2 get_vendor
+
+Returns a string of the processor vendor.
+
+=head1 SEE ALSO
+
+=over
+
+=item *
+
+L<Linux::Info::SysInfo>
+
+=back
+
+=cut
 
 sub new {
     my ( $class, $source_file ) = @_;
