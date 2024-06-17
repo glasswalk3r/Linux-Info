@@ -14,6 +14,5 @@ fpu             : yes
 fpu_exception   : yes
 cpuid level     : 2
 wp              : yes
-flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx f
-xsr sse sse2 ss ht tm up
+flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm up
 bogomips        : 3597.32
