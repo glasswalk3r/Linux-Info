@@ -22,6 +22,7 @@ use Class::XSAccessor getters => {
 use Linux::Info::KernelFactory;
 use Linux::Info::SysInfo::CPU::Intel;
 use Linux::Info::SysInfo::CPU::Arm;
+use Linux::Info::SysInfo::CPU::AMD;
 use Linux::Info::SysInfo::CPU::S390;
 
 # VERSION
@@ -343,6 +344,7 @@ sub _set_cpuinfo {
     my $intel_regex = Linux::Info::SysInfo::CPU::Intel->processor_regex;
     my $arm_regex   = Linux::Info::SysInfo::CPU::Arm->processor_regex;
     my $s390_regex  = Linux::Info::SysInfo::CPU::S390->processor_regex;
+    my $amd_regex   = Linux::Info::SysInfo::CPU::AMD->processor_regex;
     my $model;
 
   LINE: while ( my $line = <$fh> ) {
@@ -364,6 +366,12 @@ sub _set_cpuinfo {
             if ( $1 eq 'IBM/S390' ) {
                 $model = 'S390';
                 last LINE;
+            }
+        }
+
+        if ( $line =~ $amd_regex ) {
+            if ( $1 eq 'AuthenticAMD' ) {
+                $model = 'AMD';
             }
         }
     }
