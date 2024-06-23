@@ -5,7 +5,7 @@ use Carp qw(confess);
 use Class::XSAccessor getters =>
   { get_variant => 'variant', get_part => 'part', get_revision => 'revision' };
 
-use parent 'Linux::Info::SysInfo::CPU';
+use base 'Linux::Info::SysInfo::CPU';
 
 # VERSION
 

@@ -2,7 +2,7 @@ package Linux::Info::Distribution::Custom::Amazon;
 
 use warnings;
 use strict;
-use parent 'Linux::Info::Distribution::Custom';
+use base 'Linux::Info::Distribution::Custom';
 
 # VERSION
 # ABSTRACT: a subclass of Linux::Info::Distribution::Custom

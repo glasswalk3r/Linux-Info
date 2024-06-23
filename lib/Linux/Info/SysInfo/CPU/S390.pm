@@ -8,7 +8,7 @@ use Class::XSAccessor getters => {
     get_cache     => 'cache'
 };
 
-use parent 'Linux::Info::SysInfo::CPU';
+use base 'Linux::Info::SysInfo::CPU';
 
 # VERSION
 
