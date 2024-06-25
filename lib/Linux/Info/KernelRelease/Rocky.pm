@@ -2,7 +2,7 @@ package Linux::Info::KernelRelease::Rocky;
 
 use warnings;
 use strict;
-use parent 'Linux::Info::KernelRelease';
+use base 'Linux::Info::KernelRelease';
 use Carp qw(confess);
 use Class::XSAccessor getters => {
     get_revision     => 'revision',

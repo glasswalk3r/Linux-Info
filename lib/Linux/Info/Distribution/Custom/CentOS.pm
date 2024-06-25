@@ -2,7 +2,7 @@ package Linux::Info::Distribution::Custom::CentOS;
 
 use warnings;
 use strict;
-use parent 'Linux::Info::Distribution::Custom';
+use base 'Linux::Info::Distribution::Custom';
 use Class::XSAccessor getters => { get_type => 'type', };
 
 # VERSION

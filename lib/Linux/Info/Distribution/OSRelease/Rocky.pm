@@ -2,7 +2,7 @@ package Linux::Info::Distribution::OSRelease::Rocky;
 
 use warnings;
 use strict;
-use parent 'Linux::Info::Distribution::OSRelease';
+use base 'Linux::Info::Distribution::OSRelease';
 use Hash::Util qw(lock_hash unlock_hash);
 use Class::XSAccessor getters => {
     get_platform_id                    => 'platform_id',

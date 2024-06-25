@@ -2,7 +2,7 @@ package Linux::Info::Distribution::Custom::CloudLinux;
 
 use warnings;
 use strict;
-use parent 'Linux::Info::Distribution::Custom';
+use base 'Linux::Info::Distribution::Custom';
 use Class::XSAccessor getters => { get_codename => 'codename', };
 
 # VERSION

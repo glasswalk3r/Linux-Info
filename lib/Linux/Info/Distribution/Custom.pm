@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Carp       qw(confess);
 use Hash::Util qw(lock_hash unlock_hash);
-use parent 'Linux::Info::Distribution';
+use base 'Linux::Info::Distribution';
 use Class::XSAccessor getters =>
   { get_source => 'source', get_regex => 'regex' };
 

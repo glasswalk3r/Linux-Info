@@ -2,7 +2,7 @@ package Linux::Info::KernelRelease::Ubuntu;
 
 use warnings;
 use strict;
-use parent 'Linux::Info::KernelRelease';
+use base 'Linux::Info::KernelRelease';
 use Carp qw(confess);
 use Class::XSAccessor getters => {
     get_abi_bump => 'abi_bump',

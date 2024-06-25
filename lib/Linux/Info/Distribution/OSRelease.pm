@@ -3,7 +3,7 @@ package Linux::Info::Distribution::OSRelease;
 use warnings;
 use strict;
 use Carp qw(confess);
-use parent 'Linux::Info::Distribution';
+use base 'Linux::Info::Distribution';
 use Hash::Util qw(lock_hash unlock_hash);
 use Class::XSAccessor getters => {
     get_pretty_name => 'pretty_name',
