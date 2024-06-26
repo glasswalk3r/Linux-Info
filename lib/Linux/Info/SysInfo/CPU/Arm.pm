@@ -259,9 +259,34 @@ sub get_cores {
     return 0;
 }
 
-=head2 get_threads
+# get_hardware     => 'hardware',
+# get_serial       => 'serial',
+# get_model_name   => 'model_name',
+# get_cpu_revision => 'cpu_revision',
 
-Returns the number of threads of the processor.
+=head2 get_hardware
+
+Returns the content of C<Hardware> field on F</proc/cpuinfo> if available.
+
+Otherwise returns C<undef>.
+
+=head2 get_serial
+
+Returns the content of C<Serial> field on F</proc/cpuinfo> if available.
+
+Otherwise returns C<undef>.
+
+=head2 get_model_name
+
+Returns the content of C<model name> field on F</proc/cpuinfo> if available.
+
+Otherwise returns C<undef>.
+
+=head2 get_cpu_revision
+
+Returns the content of C<cpu revision> field on F</proc/cpuinfo> if available.
+
+Otherwise returns C<undef>.
 
 =head2 get_part
 
@@ -274,6 +299,10 @@ Return an hexadecimal of the CPU revision.
 =head2 get_variant
 
 Return an hexadecimal of the CPU variant.
+
+=head2 get_threads
+
+Returns the number of threads of the processor.
 
 =cut
 
