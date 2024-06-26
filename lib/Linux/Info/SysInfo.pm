@@ -400,8 +400,14 @@ sub _set_cpuinfo {
         my $data = <$fh>;
         close($fh);
 
-        confess
-"Failed to recognize the processor, submit the /proc/cpuinfo to this project as an issue.\n$data";
+        my @msg = (
+            'Failed to recognize the processor,',
+            'please submit the /proc/cpuinfo content below',
+            'to this project as an issue',
+            "\n$data\n",
+        );
+
+        confess join( ' ', @msg );
     }
 
     $self->{cpu} = "Linux::Info::SysInfo::CPU::$model"->new($filename);
@@ -411,15 +417,17 @@ sub _set_interfaces {
     my $self  = shift;
     my $class = ref($self);
     my $file  = $self->{files};
-    my @iface = ();
+    my @iface;
 
     my $filename = $file->{netdev};
     open my $fh, '<', $filename
       or confess "$class: unable to open $filename ($!)";
     { my $head = <$fh>; }
 
+    my $regex = qr/^\s*(\w+):/;
+
     while ( my $line = <$fh> ) {
-        if ( $line =~ /^\s*(\w+):/ ) {
+        if ( $line =~ $regex ) {
             push @iface, $1;
         }
     }
