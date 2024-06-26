@@ -7,6 +7,7 @@ use Class::XSAccessor getters => {
     get_frequency => 'frequency',
     get_cache     => 'cache'
 };
+use List::Util qw(first);
 
 use base 'Linux::Info::SysInfo::CPU';
 
@@ -139,75 +140,34 @@ sub _parse_cache {
 }
 
 sub _parse {
-    my $self             = shift;
-    my $file             = $self->{source_file};
-    my $bogo_regex       = qr/^bogomips\sper\scpu\:\s(\d+\.\d+)/;
-    my $flags_regex      = qr/^features\s\:\s(.*)/;
-    my $processors_regex = qr/^processors\s+\:\s(\d+)/;
-    my $cpu_mhz_regex    = qr/^cpu\sMHz\sstatic\s\:\s(\d+)/;
-    my $threads_regex    = qr/^max\sthread\sid\s:\s(\d+)/;
-    my $frequency_regex  = qr/^cpu\s(\wHz)\sstatic\s\:\s(\d+)/;
-    my $facilities_regex = qr/^facilities\s\:\s/;
-    my $cache_regex      = qr/cache\d\s\:\slevel/;
-    my $model_regex      = qr/^processor\s\d\:\s(.*)/;
-    my $flags_parsed     = 0;
-    open( my $fh, '<', $file ) or confess "Cannot read $file: $!";
+    my $self = shift;
+    my $file = $self->{source_file};
 
-  LINE: while ( my $line = <$fh> ) {
+    foreach my $line (<$fh>) {
         chomp($line);
-        next LINE if ( $line eq '' );
+        next if $line eq '';
 
-        if ( $line =~ $model_regex ) {
-            next LINE if ( defined $self->{model} );
-            $self->{model} = $1;
-            $self->{model} =~ tr/=//d;
-            $self->{model} =~ s/\s{2,}/ /g;
-            next LINE;
-        }
+        # Define an array of conditions and actions
+        my @conditions = (
+            {
+                regex  => $serial_regex,
+                action => sub { $self->{serial} ||= $1 }
+            },
+            {
+                regex  => $hardware_regex,
+                action => sub { $self->{hardware} ||= $1 }
+            },
+        );
 
-        if ( $line =~ $cache_regex ) {
-            $self->_parse_cache($line);
-        }
+        # Find the first condition that matches
+        my $match =
+          first { $line =~ $_->{regex} && !defined $self->{ $_->{field} } }
+          @conditions;
 
-        if ( $line =~ $flags_regex ) {
-            next LINE if ($flags_parsed);
-            $self->_parse_flags($line);
-            $flags_parsed = 1;
-        }
-
-        if ( $line =~ $vendor_regex ) {
-            $self->{vendor} = $1;
-            next LINE;
-        }
-
-        if ( $line =~ $bogo_regex ) {
-            $self->{bogomips} = $1 + 0;
-            next LINE;
-        }
-
-        if ( $line =~ $processors_regex ) {
-            $self->{processors} = $1;
-            next LINE;
-        }
-
-        if ( $line =~ $threads_regex ) {
-            $self->{threads} = $1;
-            next LINE;
-        }
-
-        if ( $line =~ $facilities_regex ) {
-            $self->{line} = $line;
-            $self->_parse_facilities;
-            next LINE;
-        }
-
-        if ( $line =~ $frequency_regex ) {
-            $self->{frequency} = "$2 $1";
-            last LINE;
+        if ($match) {
+            $match->{action}->();    # Execute the corresponding action
         }
     }
-
-    close($fh);
 }
 
 1;
