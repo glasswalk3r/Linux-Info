@@ -142,6 +142,7 @@ sub _parse_cache {
 sub _parse {
     my $self = shift;
     my $file = $self->{source_file};
+    open( my $fh, '<', $file ) or confess "Cannot read $file: $!";
 
     foreach my $line (<$fh>) {
         chomp($line);
@@ -149,25 +150,23 @@ sub _parse {
 
         # Define an array of conditions and actions
         my @conditions = (
-            {
-                regex  => $serial_regex,
-                action => sub { $self->{serial} ||= $1 }
-            },
-            {
-                regex  => $hardware_regex,
-                action => sub { $self->{hardware} ||= $1 }
-            },
+            [ $serial_regex,   sub { $self->{serial}   ||= $1 } ],
+            [ $hardware_regex, sub { $self->{hardware} ||= $1 } ],
         );
 
         # Find the first condition that matches
-        my $match =
-          first { $line =~ $_->{regex} && !defined $self->{ $_->{field} } }
-          @conditions;
+        my $match = first {
+            my ( $regex, $action ) = @$_;
+            $line =~ $regex && !defined $self->{$action}
+        } @conditions;
 
         if ($match) {
-            $match->{action}->();    # Execute the corresponding action
+            $match->[1]->();    # Execute the corresponding action
         }
     }
+
+    close($fh);
+
 }
 
 1;
