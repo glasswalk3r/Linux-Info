@@ -491,6 +491,20 @@ L<Linux::Info>
 
 =item *
 
+=item *
+
+L<Linux::Info::SysInfo::CPU>
+
+=item *
+
+L<Linux::Info::KernelRelease>
+
+=item *
+
+L<Linux::Info::>
+
+=item *
+
 L<POSIX>
 
 =item *

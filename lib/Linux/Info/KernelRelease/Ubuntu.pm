@@ -18,9 +18,6 @@ use Class::XSAccessor getters => {
 sub _parse_ver_sig {
     my $self = shift;
     my $line = $self->{source}->get_version_signature;
-
-    # <base kernel version>-<ABI number>.<upload number>-<flavour>
-    # Ubuntu 6.5.0-35.35~22.04.1-generic 6.5.13
     my $regex =
 qr/^Ubuntu\s\d\.\d\.\d\-(\d+)\.(\d+)\~\d+\.\d+\.\d+\-(\w+)\s(\d+\.\d+\.\d+)$/;
     confess "Failed to match '$line' with the regular expression $regex"

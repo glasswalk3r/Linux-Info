@@ -28,8 +28,6 @@ my @fixtures = (
     [ 'get_source_file', $source_file ],
     [ 'get_vendor',      'IBM/S390' ],
     [ 'get_frequency',   '5000 MHz' ],
-
-    # [ 'get_cache',       '512 KB' ],
 );
 
 foreach my $fixture_ref (@fixtures) {

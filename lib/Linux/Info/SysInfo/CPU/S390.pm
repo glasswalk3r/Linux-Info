@@ -139,33 +139,18 @@ sub _parse_cache {
 }
 
 sub _parse {
-    my $self = shift;
-    my $file = $self->{source_file};
-
-    # bogomips per cpu: 3033.00
-    my $bogo_regex = qr/^bogomips\sper\scpu\:\s(\d+\.\d+)/;
-
-# features : esan3 zarch stfle msa ldisp eimm dfp edat etf3eh highgprs te vx sie
-    my $flags_regex = qr/^features\s\:\s(.*)/;
-
-    # processors    : 4
+    my $self             = shift;
+    my $file             = $self->{source_file};
+    my $bogo_regex       = qr/^bogomips\sper\scpu\:\s(\d+\.\d+)/;
+    my $flags_regex      = qr/^features\s\:\s(.*)/;
     my $processors_regex = qr/^processors\s+\:\s(\d+)/;
-
-    # cpu MHz static : 5000
-    my $cpu_mhz_regex = qr/^cpu\sMHz\sstatic\s\:\s(\d+)/;
-
-    # max thread id : 0
-    my $threads_regex = qr/^max\sthread\sid\s:\s(\d+)/;
-
-    # cpu MHz static : 5000
-    my $frequency_regex = qr/^cpu\s(\wHz)\sstatic\s\:\s(\d+)/;
-
-    # facilities : 0 1 2 3 4
+    my $threads_regex    = qr/^max\sthread\sid\s:\s(\d+)/;
+    my $frequency_regex  = qr/^cpu\s(\wHz)\sstatic\s\:\s(\d+)/;
     my $facilities_regex = qr/^facilities\s\:\s/;
     my $cache_regex      = qr/cache\d\s\:\slevel/;
+    my $model_regex      = qr/^processor\s\d\:\s(.*)/;
 
-    # processor 0: version = FF, identification = 0133E8, machine = 2964
-    my $model_regex  = qr/^processor\s\d\:\s(.*)/;
+    # WORKAROUND: to avoid a is_empty() call on threads attribute
     my $flags_parsed = 0;
     open( my $fh, '<', $file ) or confess "Cannot read $file: $!";
 

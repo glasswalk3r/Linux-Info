@@ -163,6 +163,22 @@ Returns a string of the processor vendor.
 
 =item *
 
+L<Linux::Info::SysInfo::CPU::AMD>
+
+=item *
+
+L<Linux::Info::SysInfo::CPU::Arm>
+
+=item *
+
+L<Linux::Info::SysInfo::CPU::Intel>
+
+=item *
+
+L<Linux::Info::SysInfo::CPU::S390>
+
+=item *
+
 L<Linux::Info::SysInfo>
 
 =back

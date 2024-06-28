@@ -259,11 +259,6 @@ sub get_cores {
     return 0;
 }
 
-# get_hardware     => 'hardware',
-# get_serial       => 'serial',
-# get_model_name   => 'model_name',
-# get_cpu_revision => 'cpu_revision',
-
 =head2 get_hardware
 
 Returns the content of C<Hardware> field on F</proc/cpuinfo> if available.
