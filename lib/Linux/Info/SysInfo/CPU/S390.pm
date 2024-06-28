@@ -144,7 +144,6 @@ sub _parse {
     my $bogo_regex       = qr/^bogomips\sper\scpu\:\s(\d+\.\d+)/;
     my $flags_regex      = qr/^features\s\:\s(.*)/;
     my $processors_regex = qr/^processors\s+\:\s(\d+)/;
-    my $cpu_mhz_regex    = qr/^cpu\sMHz\sstatic\s\:\s(\d+)/;
     my $threads_regex    = qr/^max\sthread\sid\s:\s(\d+)/;
     my $frequency_regex  = qr/^cpu\s(\wHz)\sstatic\s\:\s(\d+)/;
     my $facilities_regex = qr/^facilities\s\:\s/;
