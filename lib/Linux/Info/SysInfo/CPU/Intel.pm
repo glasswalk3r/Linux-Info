@@ -33,7 +33,6 @@ Returns a regular expression that identifies the processor that is being read.
 
 =cut
 
-# vendor_id       : GenuineIntel
 my $vendor_regex = qr/^vendor_id\s+\:\s(\w+)/;
 
 sub processor_regex {
@@ -70,32 +69,25 @@ sub _parse_bugs {
 }
 
 sub _parse {
-    my $self = shift;
-    my $file = $self->{source_file};
-
-    # model name      : Intel(R) Core(TM) i5-4300M CPU @ 2.60GHz
+    my $self            = shift;
+    my $file            = $self->{source_file};
     my $model_regex     = qr/^model\sname\s+\:\s(.*)/;
     my $processor_regex = qr/^physical\s+id\s*:\s*(\d+)/;
     my $core_regex      = qr/^core\s+id\s*:\s*(\d+)/;
     my $thread_regex    = qr/^processor\s*:\s*\d+/;
     my $flags_regex     = qr/^flags\s+\:/;
-
-    # bogomips        : 4784.43
-    my $bogo_regex = qr/^bogomips\s+\:\s(\d+\.\d+)/;
-
-    # bugs            : apic_c1e spectre_v1 spectre_v2 spec_store_bypass
-    my $bugs_regex = qr/^bugs\s+\:\s/;
-
-    # cpu MHz         : 1796.992
+    my $bogo_regex      = qr/^bogomips\s+\:\s(\d+\.\d+)/;
+    my $bugs_regex      = qr/^bugs\s+\:\s/;
     my $frequency_regex = qr/^cpu\s(\wHz)\s+\:\s(\d+\.\d+)/;
-
-    # cache size      : 512 KB
-    my $cache_regex = qr/^cache\ssize\s+\:\s(.*)/;
-
+    my $cache_regex     = qr/^cache\ssize\s+\:\s(.*)/;
     my %processors;
-    my $threads       = 0;
+    my $threads = 0;
+
+    # WORKAROUND: to avoid a is_empty() call on threads attribute
     my $flags_defined = 0;
-    my $bugs_defined  = 0;
+
+    # WORKAROUND: to avoid a is_empty() call on threads attribute
+    my $bugs_defined = 0;
     my $phyid;
     open( my $fh, '<', $file ) or confess "Cannot read $file: $!";
 

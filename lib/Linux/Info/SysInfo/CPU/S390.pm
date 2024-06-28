@@ -149,7 +149,9 @@ sub _parse {
     my $facilities_regex = qr/^facilities\s\:\s/;
     my $cache_regex      = qr/cache\d\s\:\slevel/;
     my $model_regex      = qr/^processor\s\d\:\s(.*)/;
-    my $flags_parsed     = 0;
+
+    # WORKAROUND: to avoid a is_empty() call on threads attribute
+    my $flags_parsed = 0;
     open( my $fh, '<', $file ) or confess "Cannot read $file: $!";
 
   LINE: while ( my $line = <$fh> ) {

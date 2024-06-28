@@ -32,7 +32,6 @@ Returns a regular expression that identifies the processor that is being read.
 
 =cut
 
-# vendor_id	: AuthenticAMD
 my $vendor_regex = qr/^vendor_id\t\:\s(\w+)/;
 
 sub processor_regex {
@@ -80,11 +79,14 @@ sub _parse {
     my $bugs_regex      = qr/^bugs\t+\:\s/;
     my $frequency_regex = qr/^cpu\s(\wHz)\t+\:\s(\d+\.\d+)/;
     my $cache_regex     = qr/^cache\ssize\t+\:\s(.*)/;
-
     my %processors;
-    my $threads       = 0;
+    my $threads = 0;
+
+    # WORKAROUND: to avoid a is_empty() call on threads attribute
     my $flags_defined = 0;
-    my $bugs_defined  = 0;
+
+    # WORKAROUND: to avoid a is_empty() call on threads attribute
+    my $bugs_defined = 0;
     my $phyid;
     open( my $fh, '<', $file ) or confess "Cannot read $file: $!";
 
