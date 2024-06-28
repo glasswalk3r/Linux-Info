@@ -272,6 +272,30 @@ use overload
 
 =item *
 
+L<Linux::Info::KernelFactory>
+
+=item *
+
+L<Linux::Info::KernelRelease::Alpine>
+
+=item *
+
+L<Linux::Info::KernelRelease::Raspbian>
+
+=item *
+
+L<Linux::Info::KernelRelease::RedHat>
+
+=item *
+
+L<Linux::Info::KernelRelease::Rocky>
+
+=item *
+
+L<Linux::Info::KernelRelease::Ubuntu>
+
+=item *
+
 https://www.unixtutorial.org/use-proc-version-to-identify-your-linux-release/
 
 =back

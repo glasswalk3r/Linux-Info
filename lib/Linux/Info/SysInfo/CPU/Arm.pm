@@ -84,39 +84,18 @@ my %vendors = (
 );
 
 sub _parse {
-    my $self = shift;
-    my $file = $self->{source_file};
-
-# Features	: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm lrcpc dcpop
-    my $flags_regex   = qr/^Features\t\:\s+(.*)/;
-    my $flags_defined = 0;
-
-    # CPU implementer	: 0x41
-    my $vendor_regex = qr/CPU\simplementer\t\:\s(0x\d+)/;
-
-    # BogoMIPS	: 50.00
-    my $bogo_regex = qr/BogoMIPS\t\:\s(\d+\.\d+)/;
-
-    # processor	: 0
+    my $self            = shift;
+    my $file            = $self->{source_file};
+    my $flags_regex     = qr/^Features\t\:\s+(.*)/;
+    my $vendor_regex    = qr/CPU\simplementer\t\:\s(0x\d+)/;
+    my $bogo_regex      = qr/BogoMIPS\t\:\s(\d+\.\d+)/;
     my $processor_regex = qr/^processor\t\:\s(\d)/;
-
-    # CPU variant	: 0x3
-    my $variant_regex = qr/^CPU\svariant\t\:\s(0x\w+)/;
-
-    # CPU part	: 0xd0c
-    my $part_regex = qr/^CPU\spart\t\:\s(0x\w+)/;
-
-    # CPU revision	: 1
-    my $revision_regex = qr/^CPU\srevision\t\:\s(\d+)/;
-
-    # CPU architecture: 8
-    my $arch_regex = qr/^CPU\sarchitecture\:\s(\d+)/;
-
-    # Processor       : ARMv7 Processor rev 10 (v7l)
-    # model name      : ARMv7 Processor rev 10 (v7l)
-    # Hardware        : Generic DT based system
-    my $model_regex = qr/^(Processor|model\sname|Hardware)\s+\:\s(.*)/;
-    my $processors  = 0;
+    my $variant_regex   = qr/^CPU\svariant\t\:\s(0x\w+)/;
+    my $part_regex      = qr/^CPU\spart\t\:\s(0x\w+)/;
+    my $revision_regex  = qr/^CPU\srevision\t\:\s(\d+)/;
+    my $arch_regex      = qr/^CPU\sarchitecture\:\s(\d+)/;
+    my $model_regex     = qr/^(Processor|model\sname|Hardware)\s+\:\s(.*)/;
+    my $processors      = 0;
 
     open( my $fh, '<', $file ) or confess "Cannot read $file: $!";
 
